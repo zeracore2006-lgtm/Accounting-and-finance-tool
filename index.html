@@ -1,0 +1,2814 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApexFinance Enterprise SME Accounting Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        accent: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .active-nav { background: rgba(99, 102, 241, 0.15); border-left: 3px solid #6366f1; color: #818cf8; }
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .glass-panel { border: none !important; background: transparent !important; }
+        }
+    </style>
+</head>
+<body class="h-full flex overflow-hidden font-sans antialiased text-slate-200 bg-slate-950">
+
+    <!-- SIDEBAR NAV -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 no-print">
+        <!-- Logo & Company Switcher -->
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-accent-600 to-emerald-500 flex items-center justify-center font-bold text-white shadow-lg shadow-accent-500/20">
+                    <i data-lucide="landmark" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-100 text-sm tracking-wide leading-tight">ApexFinance</h1>
+                    <p class="text-xs text-slate-400">Apex Global Ltd</p>
+                </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SME Pro</span>
+        </div>
+
+        <!-- Role & Ecosystem Status -->
+        <div class="px-4 py-3 bg-slate-900/60 border-b border-slate-800/80 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-1.5 text-slate-400">
+                <i data-lucide="user-check" class="w-3.5 h-3.5 text-accent-400"></i>
+                <span class="text-slate-300 font-medium" id="currentRoleLabel">Admin</span>
+            </div>
+            <select id="roleSelector" onchange="changeUserRole(this.value)" class="bg-slate-800 text-slate-200 text-xs border border-slate-700 rounded px-1.5 py-0.5 focus:outline-none focus:border-accent-500">
+                <option value="Admin">Admin</option>
+                <option value="Accountant">Accountant</option>
+                <option value="Finance Staff">Finance Staff</option>
+                <option value="Manager">Manager</option>
+                <option value="View Only">View Only</option>
+            </select>
+        </div>
+
+        <!-- Nav Items -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+            <!-- Group: Overview -->
+            <div>
+                <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">Overview</div>
+                <div class="space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition active-nav">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Finance Dashboard
+                    </button>
+                    <button onclick="switchTab('ecosystem')" id="nav-ecosystem" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="network" class="w-4 h-4 text-emerald-400"></i> Ecosystem Sync
+                        <span class="ml-auto flex h-2 w-2 relative">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group: Accounting Core -->
+            <div>
+                <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">General Ledger</div>
+                <div class="space-y-1">
+                    <button onclick="switchTab('chart-of-accounts')" id="nav-chart-of-accounts" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="list-tree" class="w-4 h-4"></i> Chart of Accounts
+                    </button>
+                    <button onclick="switchTab('general-ledger')" id="nav-general-ledger" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="book-open" class="w-4 h-4"></i> General Ledger
+                    </button>
+                    <button onclick="switchTab('journal-entries')" id="nav-journal-entries" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Journal Entries
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group: Operations -->
+            <div>
+                <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">Operations</div>
+                <div class="space-y-1">
+                    <button onclick="switchTab('income')" id="nav-income" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="arrow-down-left" class="w-4 h-4 text-emerald-400"></i> Income Records
+                    </button>
+                    <button onclick="switchTab('expenses')" id="nav-expenses" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-rose-400"></i> Expense Management
+                    </button>
+                    <button onclick="switchTab('receivables')" id="nav-receivables" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="users" class="w-4 h-4"></i> Accounts Receivable
+                    </button>
+                    <button onclick="switchTab('payables')" id="nav-payables" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="truck" class="w-4 h-4"></i> Accounts Payable
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group: Banking & Assets -->
+            <div>
+                <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">Banking & Assets</div>
+                <div class="space-y-1">
+                    <button onclick="switchTab('bank-cash')" id="nav-bank-cash" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="building-2" class="w-4 h-4"></i> Bank & Cash
+                    </button>
+                    <button onclick="switchTab('bank-recon')" id="nav-bank-recon" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="check-check" class="w-4 h-4 text-cyan-400"></i> Bank Reconciliation
+                    </button>
+                    <button onclick="switchTab('fixed-assets')" id="nav-fixed-assets" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="box" class="w-4 h-4"></i> Fixed Assets
+                    </button>
+                    <button onclick="switchTab('budgeting')" id="nav-budgeting" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="pie-chart" class="w-4 h-4"></i> Budgeting & Variance
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group: Tax & Compliance -->
+            <div>
+                <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">Tax & Compliance</div>
+                <div class="space-y-1">
+                    <button onclick="switchTab('tax-management')" id="nav-tax-management" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="receipt" class="w-4 h-4"></i> Tax Management (GST/VAT)
+                    </button>
+                    <button onclick="switchTab('period-mgmt')" id="nav-period-mgmt" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="calendar-lock" class="w-4 h-4"></i> Period Closing
+                    </button>
+                    <button onclick="switchTab('reconcile-adjust')" id="nav-reconcile-adjust" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="sliders" class="w-4 h-4"></i> Adjustments & Accruals
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group: Reports & Documents -->
+            <div>
+                <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-slate-500 uppercase">Intelligence</div>
+                <div class="space-y-1">
+                    <button onclick="switchTab('financial-reports')" id="nav-financial-reports" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="file-bar-chart-2" class="w-4 h-4 text-purple-400"></i> Financial Reports
+                    </button>
+                    <button onclick="switchTab('documents')" id="nav-documents" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="folder-archive" class="w-4 h-4"></i> Document Storage
+                    </button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="settings" class="w-4 h-4"></i> System Settings
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Reset Demo Data -->
+        <div class="p-3 border-t border-slate-800">
+            <button onclick="resetDemoData()" class="w-full text-center px-3 py-2 text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded transition flex items-center justify-center gap-2">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Demo Data
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden">
+        <!-- Topbar -->
+        <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between flex-shrink-0 no-print">
+            <div class="flex items-center gap-4 flex-1 max-w-xl">
+                <div class="relative w-full">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="globalSearchInput" onkeyup="handleGlobalSearch(this.value)" placeholder="Search accounts, journals, invoices, expenses, suppliers (Ctrl+K)..." class="w-full bg-slate-950 text-xs text-slate-200 pl-9 pr-12 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-accent-500 transition">
+                    <kbd class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">⌘K</kbd>
+                </div>
+            </div>
+
+            <!-- Top Actions -->
+            <div class="flex items-center gap-3">
+                <!-- PostgreSQL Status Badge -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-600/30 text-xs">
+                    <i data-lucide="database" class="w-3.5 h-3.5 text-sky-400"></i>
+                    <span class="text-sky-200 font-medium">PostgreSQL Engine</span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-semibold">Active</span>
+                </div>
+
+                <!-- Date Period Badge -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/80 text-xs">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-accent-400"></i>
+                    <span class="text-slate-300 font-medium">FY 2026</span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded">Open</span>
+                </div>
+
+                <!-- Currency Indicator -->
+                <div class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700" id="currencyBadge">
+                    USD ($)
+                </div>
+
+                <!-- Quick Action Button -->
+                <button onclick="openQuickActionModal()" class="action-btn flex items-center gap-2 bg-accent-600 hover:bg-accent-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition shadow-md shadow-accent-600/20">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Quick Action
+                </button>
+            </div>
+        </header>
+
+        <!-- Global Search Popup Results -->
+        <div id="searchResultsContainer" class="hidden absolute top-16 left-64 right-0 max-w-2xl mx-auto z-50 bg-slate-900 border border-slate-700 rounded-b-xl shadow-2xl p-4 max-h-96 overflow-y-auto no-print">
+            <div class="text-xs text-slate-400 font-semibold mb-2">Search Results:</div>
+            <div id="searchResultsList" class="space-y-1"></div>
+        </div>
+
+        <!-- Scrollable Tab Content Container -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6" id="mainScrollArea">
+
+            <!-- MODULE 1: FINANCE DASHBOARD -->
+            <section id="tab-dashboard" class="space-y-6">
+                <!-- Dashboard Welcome Banner -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-accent-900/40 via-slate-900 to-emerald-950/40 p-6 rounded-2xl border border-slate-800">
+                    <div>
+                        <h2 class="text-xl font-bold text-white tracking-tight">Financial Overview</h2>
+                        <p class="text-xs text-slate-400 mt-1">Real-time financial status for Apex Global Ltd. Period: Current Fiscal Month.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="switchTab('financial-reports')" class="px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg flex items-center gap-2 transition">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Report
+                        </button>
+                        <button onclick="openModal('modal-record-expense')" class="action-btn px-3.5 py-2 text-xs font-medium bg-rose-600 hover:bg-rose-500 text-white rounded-lg flex items-center gap-2 transition">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Record Expense
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Metric Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Cash Balance -->
+                    <div class="glass-panel p-4 rounded-xl relative overflow-hidden">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-medium">Cash & Bank Balance</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                                <i data-lucide="wallet" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-white" id="kpiCashBalance">$44,350.00</div>
+                        <div class="text-[11px] text-emerald-400 flex items-center gap-1 mt-2">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> +12.4% vs last month
+                        </div>
+                    </div>
+
+                    <!-- Accounts Receivable -->
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-medium">Accounts Receivable</span>
+                            <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
+                                <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-white" id="kpiAR">$18,400.00</div>
+                        <div class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
+                            <span>Outstanding Customers</span>
+                            <span class="text-sky-400 font-medium">2 Invoices</span>
+                        </div>
+                    </div>
+
+                    <!-- Accounts Payable -->
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-medium">Accounts Payable</span>
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-white" id="kpiAP">$12,300.00</div>
+                        <div class="text-[11px] text-amber-400 mt-2 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> 2 Bills due within 7 days
+                        </div>
+                    </div>
+
+                    <!-- Net Profit -->
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between text-slate-400 mb-2">
+                            <span class="text-xs font-medium">Net Profit (YTD)</span>
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                                <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-white" id="kpiNetProfit">$32,000.00</div>
+                        <div class="text-[11px] text-emerald-400 mt-2 flex items-center gap-1">
+                            <span>Margin: 30.6%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Income vs Expense Bar Chart -->
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-xl flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Income vs Expense Trend</h3>
+                                <p class="text-xs text-slate-400">Monthly financial performance comparison</p>
+                            </div>
+                            <select id="dashChartPeriod" onchange="renderDashboardCharts()" class="bg-slate-900 text-xs border border-slate-700 text-slate-300 rounded px-2 py-1">
+                                <option value="6m">Last 6 Months</option>
+                                <option value="12m">FY 2026</option>
+                            </select>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="incomeExpenseChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Expense Breakdown Donut Chart -->
+                    <div class="glass-panel p-5 rounded-xl flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Expense Distribution</h3>
+                                <p class="text-xs text-slate-400">By operational category</p>
+                            </div>
+                        </div>
+                        <div class="h-64 flex items-center justify-center">
+                            <canvas id="expenseDonutChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions Table & Cash Flow Summary -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Transactions -->
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold text-white">Recent Transactions</h3>
+                            <button onclick="switchTab('general-ledger')" class="text-xs text-accent-400 hover:underline">View All Ledger Entries →</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-2.5">Date</th>
+                                        <th class="p-2.5">Ref #</th>
+                                        <th class="p-2.5">Description</th>
+                                        <th class="p-2.5">Type</th>
+                                        <th class="p-2.5 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardRecentTxTable" class="divide-y divide-slate-800/60">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Cash Flow & Quick Actions Panel -->
+                    <div class="space-y-6">
+                        <!-- Cash Flow Summary -->
+                        <div class="glass-panel p-5 rounded-xl space-y-3">
+                            <h3 class="text-sm font-bold text-white">Cash Flow Summary</h3>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between py-1.5 border-b border-slate-800">
+                                    <span class="text-slate-400">Operating Inflow</span>
+                                    <span class="text-emerald-400 font-semibold" id="cfInflow">+$104,500.00</span>
+                                </div>
+                                <div class="flex justify-between py-1.5 border-b border-slate-800">
+                                    <span class="text-slate-400">Operating Outflow</span>
+                                    <span class="text-rose-400 font-semibold" id="cfOutflow">-$72,500.00</span>
+                                </div>
+                                <div class="flex justify-between py-1.5 font-bold pt-2">
+                                    <span class="text-slate-200">Net Cash Flow</span>
+                                    <span class="text-accent-400" id="cfNet">+$32,000.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shortcuts Panel -->
+                        <div class="glass-panel p-5 rounded-xl space-y-3">
+                            <h3 class="text-sm font-bold text-white">Quick Shortcuts</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="openModal('modal-new-journal')" class="action-btn p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-left text-slate-300 hover:text-white transition flex flex-col gap-1">
+                                    <i data-lucide="file-plus" class="w-4 h-4 text-accent-400"></i>
+                                    <span>New Journal</span>
+                                </button>
+                                <button onclick="openModal('modal-add-bill')" class="action-btn p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-left text-slate-300 hover:text-white transition flex flex-col gap-1">
+                                    <i data-lucide="truck" class="w-4 h-4 text-amber-400"></i>
+                                    <span>New Supplier Bill</span>
+                                </button>
+                                <button onclick="openModal('modal-record-income')" class="action-btn p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-left text-slate-300 hover:text-white transition flex flex-col gap-1">
+                                    <i data-lucide="arrow-down-circle" class="w-4 h-4 text-emerald-400"></i>
+                                    <span>Record Income</span>
+                                </button>
+                                <button onclick="switchTab('financial-reports')" class="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-left text-slate-300 hover:text-white transition flex flex-col gap-1">
+                                    <i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>
+                                    <span>Generate P&L</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 2: CHART OF ACCOUNTS -->
+            <section id="tab-chart-of-accounts" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Chart of Accounts</h2>
+                        <p class="text-xs text-slate-400">Manage account hierarchy, unique accounting codes, and active status.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="coaSearch" onkeyup="filterCOATable()" placeholder="Filter account name or code..." class="bg-slate-900 text-xs text-slate-200 px-3 py-1.5 rounded-lg border border-slate-800 focus:outline-none focus:border-accent-500">
+                        <button onclick="openModal('modal-create-account')" class="action-btn px-3.5 py-1.5 bg-accent-600 hover:bg-accent-500 text-white text-xs font-medium rounded-lg flex items-center gap-2 transition">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Account
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Account Type Group Selector Tabs -->
+                <div class="flex border-b border-slate-800 gap-4 text-xs font-medium">
+                    <button onclick="filterCOAGroup('All')" id="coaTab-All" class="pb-2 border-b-2 border-accent-500 text-accent-400">All Accounts</button>
+                    <button onclick="filterCOAGroup('Asset')" id="coaTab-Asset" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Assets</button>
+                    <button onclick="filterCOAGroup('Liability')" id="coaTab-Liability" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Liabilities</button>
+                    <button onclick="filterCOAGroup('Equity')" id="coaTab-Equity" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Equity</button>
+                    <button onclick="filterCOAGroup('Income')" id="coaTab-Income" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Income</button>
+                    <button onclick="filterCOAGroup('Expense')" id="coaTab-Expense" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Expense</button>
+                </div>
+
+                <!-- COA Table -->
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Code</th>
+                                <th class="p-3">Account Name</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Parent Account</th>
+                                <th class="p-3 text-right">Current Balance</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coaTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MODULE 3: GENERAL LEDGER -->
+            <section id="tab-general-ledger" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">General Ledger</h2>
+                        <p class="text-xs text-slate-400">Detailed transaction history for individual accounting accounts.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Select Account -->
+                        <select id="glAccountSelect" onchange="renderGeneralLedger()" class="bg-slate-900 text-xs border border-slate-700 text-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-accent-500">
+                            <!-- Populated via JS -->
+                        </select>
+                        <input type="date" id="glStartDate" onchange="renderGeneralLedger()" class="bg-slate-900 text-xs border border-slate-700 text-slate-200 rounded-lg px-2 py-1.5">
+                        <span class="text-slate-500 text-xs">to</span>
+                        <input type="date" id="glEndDate" onchange="renderGeneralLedger()" class="bg-slate-900 text-xs border border-slate-700 text-slate-200 rounded-lg px-2 py-1.5">
+                    </div>
+                </div>
+
+                <!-- Ledger Account Info Banner -->
+                <div class="glass-panel p-4 rounded-xl flex flex-wrap items-center justify-between gap-4" id="glAccountSummaryHeader">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Ledger Entries Table -->
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Reference #</th>
+                                <th class="p-3">Description</th>
+                                <th class="p-3 text-right">Debit</th>
+                                <th class="p-3 text-right">Credit</th>
+                                <th class="p-3 text-right">Running Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="glTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MODULE 4: JOURNAL ENTRIES -->
+            <section id="tab-journal-entries" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Journal Entries</h2>
+                        <p class="text-xs text-slate-400">Manual double-entry bookkeeping with strict debit and credit validation.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="openModal('modal-new-journal')" class="action-btn px-3.5 py-1.5 bg-accent-600 hover:bg-accent-500 text-white text-xs font-medium rounded-lg flex items-center gap-2 transition">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Journal Entry
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Journal List Table -->
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Journal Ref</th>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Description</th>
+                                <th class="p-3">Debits / Credits</th>
+                                <th class="p-3 text-right">Total Amount</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="journalTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MODULE 5: INCOME MANAGEMENT -->
+            <section id="tab-income" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Income Records</h2>
+                        <p class="text-xs text-slate-400">Track operating sales revenue and non-operating income sources.</p>
+                    </div>
+                    <button onclick="openModal('modal-record-income')" class="action-btn px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg flex items-center gap-2 transition">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Record Income
+                    </button>
+                </div>
+
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Income Ref</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Associated Account</th>
+                                <th class="p-3">Notes</th>
+                                <th class="p-3 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incomeTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MODULE 6: EXPENSE MANAGEMENT -->
+            <section id="tab-expenses" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Expense Management</h2>
+                        <p class="text-xs text-slate-400">Log operational expenses, attach receipts, and manage vendors.</p>
+                    </div>
+                    <button onclick="openModal('modal-record-expense')" class="action-btn px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium rounded-lg flex items-center gap-2 transition">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Record Expense
+                    </button>
+                </div>
+
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Ref #</th>
+                                <th class="p-3">Vendor</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Payment Method</th>
+                                <th class="p-3 text-right">Amount</th>
+                                <th class="p-3 text-center">Receipt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MODULE 7: ACCOUNTS RECEIVABLE -->
+            <section id="tab-receivables" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Accounts Receivable (AR)</h2>
+                        <p class="text-xs text-slate-400">Customer balances, payment allocations, and unpaid invoice aging.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openModal('modal-receive-payment')" class="action-btn px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5">
+                            <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i> Receive Payment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Customer Aging Table Matrix -->
+                <div class="glass-panel p-5 rounded-xl space-y-3">
+                    <h3 class="text-sm font-bold text-white">Receivables Aging Analysis</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">Customer</th>
+                                    <th class="p-2.5 text-right">Current (0-30d)</th>
+                                    <th class="p-2.5 text-right">31-60 Days</th>
+                                    <th class="p-2.5 text-right">61-90 Days</th>
+                                    <th class="p-2.5 text-right">90+ Days</th>
+                                    <th class="p-2.5 text-right">Total Owed</th>
+                                    <th class="p-2.5 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="arAgingTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Customer Invoices List -->
+                <div class="glass-panel p-5 rounded-xl space-y-3">
+                    <h3 class="text-sm font-bold text-white">Outstanding Customer Invoices</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">Invoice #</th>
+                                    <th class="p-2.5">Customer</th>
+                                    <th class="p-2.5">Issue Date</th>
+                                    <th class="p-2.5">Due Date</th>
+                                    <th class="p-2.5 text-right">Total Amount</th>
+                                    <th class="p-2.5 text-right">Balance Due</th>
+                                    <th class="p-2.5 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="arInvoicesTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 8: ACCOUNTS PAYABLE -->
+            <section id="tab-payables" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Accounts Payable (AP)</h2>
+                        <p class="text-xs text-slate-400">Supplier bill management, payable aging, and vendor payments.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openModal('modal-add-bill')" class="action-btn px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Supplier Bill
+                        </button>
+                        <button onclick="openModal('modal-pay-supplier')" class="action-btn px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5">
+                            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Pay Supplier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AP Aging Matrix -->
+                <div class="glass-panel p-5 rounded-xl space-y-3">
+                    <h3 class="text-sm font-bold text-white">Payable Aging Analysis</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">Supplier</th>
+                                    <th class="p-2.5 text-right">Current (0-30d)</th>
+                                    <th class="p-2.5 text-right">31-60 Days</th>
+                                    <th class="p-2.5 text-right">61-90 Days</th>
+                                    <th class="p-2.5 text-right">90+ Days</th>
+                                    <th class="p-2.5 text-right">Total Owed</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apAgingTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Supplier Bills List -->
+                <div class="glass-panel p-5 rounded-xl space-y-3">
+                    <h3 class="text-sm font-bold text-white">Unpaid Supplier Bills</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 bg-slate-900/80 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">Bill #</th>
+                                    <th class="p-2.5">Supplier</th>
+                                    <th class="p-2.5">Bill Date</th>
+                                    <th class="p-2.5">Due Date</th>
+                                    <th class="p-2.5 text-right">Amount</th>
+                                    <th class="p-2.5 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apBillsTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 9: BANK & CASH & RECONCILIATION -->
+            <section id="tab-bank-cash" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Bank & Cash Accounts</h2>
+                        <p class="text-xs text-slate-400">Monitor cash balances and record account-to-account transfers.</p>
+                    </div>
+                    <button onclick="openModal('modal-transfer')" class="action-btn px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded-lg flex items-center gap-2 transition">
+                        <i data-lucide="repeat" class="w-4 h-4"></i> Transfer Funds
+                    </button>
+                </div>
+
+                <!-- Account Balance Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="bankAccountCards">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+            <!-- MODULE 9 (PART 2): BANK RECONCILIATION -->
+            <section id="tab-bank-recon" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Bank Reconciliation Engine</h2>
+                        <p class="text-xs text-slate-400">Match bank statement lines with recorded general ledger entries.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="autoMatchReconciliation()" class="action-btn px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition">
+                            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Run Auto-Match Engine
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reconciliation Side-By-Side Comparison Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Bank Statement Lines -->
+                    <div class="glass-panel p-5 rounded-xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="building" class="w-4 h-4 text-cyan-400"></i> Bank Feed Statement Lines
+                            </h3>
+                            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded" id="bankUnmatchedCount">3 Unreconciled</span>
+                        </div>
+                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead class="text-slate-400 bg-slate-900 border-b border-slate-800 sticky top-0">
+                                    <tr>
+                                        <th class="p-2">Date</th>
+                                        <th class="p-2">Description</th>
+                                        <th class="p-2 text-right">Amount</th>
+                                        <th class="p-2 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bankStatementLinesBody" class="divide-y divide-slate-800">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Book Ledger Transactions -->
+                    <div class="glass-panel p-5 rounded-xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i> Book Ledger Cash Entries
+                            </h3>
+                            <span class="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded">Matching View</span>
+                        </div>
+                        <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead class="text-slate-400 bg-slate-900 border-b border-slate-800 sticky top-0">
+                                    <tr>
+                                        <th class="p-2">Date</th>
+                                        <th class="p-2">Ref / Desc</th>
+                                        <th class="p-2 text-right">Amount</th>
+                                        <th class="p-2 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookLedgerLinesBody" class="divide-y divide-slate-800">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 10: TAX MANAGEMENT -->
+            <section id="tab-tax-management" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Tax Management (GST / VAT)</h2>
+                        <p class="text-xs text-slate-400">Calculate Input Tax paid vs Output Tax collected for tax returns.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 rounded-xl">
+                        <span class="text-xs text-slate-400 font-medium">Output Tax Collected (Sales)</span>
+                        <div class="text-2xl font-bold text-emerald-400 mt-1" id="taxOutputVal">$8,450.00</div>
+                        <span class="text-[10px] text-slate-500">Collected from customers</span>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl">
+                        <span class="text-xs text-slate-400 font-medium">Input Tax Paid (Purchases)</span>
+                        <div class="text-2xl font-bold text-rose-400 mt-1" id="taxInputVal">$3,200.00</div>
+                        <span class="text-[10px] text-slate-500">Claimable credit</span>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border-accent-500/30">
+                        <span class="text-xs text-slate-400 font-medium">Net Tax Payable / (Refundable)</span>
+                        <div class="text-2xl font-bold text-accent-400 mt-1" id="taxNetVal">$5,250.00</div>
+                        <span class="text-[10px] text-emerald-400">Ready for filing report</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-xl space-y-3">
+                    <h3 class="text-sm font-bold text-white">Tax Ledger Entries</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 bg-slate-900 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">Date</th>
+                                    <th class="p-2.5">Type</th>
+                                    <th class="p-2.5">Ref #</th>
+                                    <th class="p-2.5">Description</th>
+                                    <th class="p-2.5 text-right">Taxable Base</th>
+                                    <th class="p-2.5 text-right">Tax Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="taxTableBody" class="divide-y divide-slate-800">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 11: FIXED ASSETS -->
+            <section id="tab-fixed-assets" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Fixed Asset Register</h2>
+                        <p class="text-xs text-slate-400">Track capital assets, straight-line depreciation, and net book value.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="runMonthlyDepreciation()" class="action-btn px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition">
+                            <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Run Depreciation Entry
+                        </button>
+                        <button onclick="openModal('modal-add-asset')" class="action-btn px-3 py-1.5 bg-accent-600 hover:bg-accent-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Asset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 bg-slate-900 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Asset Code</th>
+                                <th class="p-3">Asset Name</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Purchase Date</th>
+                                <th class="p-3 text-right">Original Cost</th>
+                                <th class="p-3 text-right">Useful Life</th>
+                                <th class="p-3 text-right">Accum. Depreciation</th>
+                                <th class="p-3 text-right">Book Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetsTableBody" class="divide-y divide-slate-800">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MODULE 12: BUDGETING -->
+            <section id="tab-budgeting" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Budgeting & Variance Analysis</h2>
+                        <p class="text-xs text-slate-400">Compare target operational budgets against actual ledger outcomes.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl p-5 space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 bg-slate-900 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Category / Account</th>
+                                    <th class="p-3 text-right">Annual Budget</th>
+                                    <th class="p-3 text-right">Actual YTD Spend</th>
+                                    <th class="p-3 text-right">Variance ($)</th>
+                                    <th class="p-3 text-right">Variance (%)</th>
+                                    <th class="p-3 text-center">Status Indicator</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budgetTableBody" class="divide-y divide-slate-800">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 13: FINANCIAL REPORTS -->
+            <section id="tab-financial-reports" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Financial Statement Center</h2>
+                        <p class="text-xs text-slate-400">Generate P&L, Balance Sheet, Cash Flow, and Trial Balance reports.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportReportToExcel()" class="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition">
+                            <i data-lucide="sheet" class="w-4 h-4"></i> Export to Excel
+                        </button>
+                        <button onclick="window.print()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg flex items-center gap-1.5 transition border border-slate-700">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Print / PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Report Type Selector -->
+                <div class="flex border-b border-slate-800 gap-4 text-xs font-medium no-print">
+                    <button onclick="renderFinancialReport('pnl')" id="repTab-pnl" class="pb-2 border-b-2 border-accent-500 text-accent-400">Profit & Loss (P&L)</button>
+                    <button onclick="renderFinancialReport('bs')" id="repTab-bs" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Balance Sheet</button>
+                    <button onclick="renderFinancialReport('tb')" id="repTab-tb" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Trial Balance</button>
+                </div>
+
+                <!-- Report Container (Print Friendly) -->
+                <div class="glass-panel p-8 rounded-2xl space-y-6 max-w-4xl mx-auto bg-slate-900 text-slate-100" id="reportViewer">
+                    <!-- Dynamic Report Content via JS -->
+                </div>
+            </section>
+
+            <!-- MODULE 14: PERIOD MANAGEMENT -->
+            <section id="tab-period-mgmt" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Period Closing & Financial Year</h2>
+                        <p class="text-xs text-slate-400">Lock accounting periods to prevent unauthorized backdated edits.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-xl space-y-4">
+                    <h3 class="text-sm font-bold text-white">Monthly Period Locking Status</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3" id="periodGrid">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 15: RECONCILIATION & ADJUSTMENTS -->
+            <section id="tab-reconcile-adjust" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Adjustments & Accruals Engine</h2>
+                        <p class="text-xs text-slate-400">Manage prepaid expenses, accrued liabilities, and suspense clearing.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 rounded-xl space-y-2">
+                        <div class="text-xs text-slate-400 font-medium">Prepaid Expenses</div>
+                        <div class="text-xl font-bold text-sky-400">$3,400.00</div>
+                        <p class="text-[11px] text-slate-500">Insurance & Rent paid in advance</p>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl space-y-2">
+                        <div class="text-xs text-slate-400 font-medium">Accrued Liabilities</div>
+                        <div class="text-xl font-bold text-amber-400">$3,200.00</div>
+                        <p class="text-[11px] text-slate-500">Salaries & utilities incurred</p>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl space-y-2">
+                        <div class="text-xs text-slate-400 font-medium">Suspense Account Balance</div>
+                        <div class="text-xl font-bold text-rose-400">$0.00</div>
+                        <p class="text-[11px] text-emerald-400">All unclassified items resolved</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 16: DOCUMENTS STORAGE -->
+            <section id="tab-documents" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Document Repository</h2>
+                        <p class="text-xs text-slate-400">Store and attach receipts, supplier bills, and bank statements.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="documentGrid">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+            <!-- MODULE 19: SETTINGS -->
+            <section id="tab-settings" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Accounting System Settings</h2>
+                        <p class="text-xs text-slate-400">Configure base currency, financial year, and document numbering sequence.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl space-y-6 max-w-2xl">
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-1">Company Name</label>
+                            <input type="text" id="settingCompName" value="Apex Global Ltd" class="w-full bg-slate-900 text-slate-100 p-2 rounded border border-slate-700">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-300 font-medium mb-1">Base Currency</label>
+                                <select id="settingCurrency" onchange="updateSystemCurrency(this.value)" class="w-full bg-slate-900 text-slate-100 p-2 rounded border border-slate-700">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="INR">INR (₹)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 font-medium mb-1">Financial Year Start</label>
+                                <select id="settingFYStart" class="w-full bg-slate-900 text-slate-100 p-2 rounded border border-slate-700">
+                                    <option value="January">January 1st</option>
+                                    <option value="April">April 1st</option>
+                                    <option value="July">July 1st</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-slate-300 font-medium mb-1">Invoice Prefix</label>
+                                <input type="text" value="INV-" class="w-full bg-slate-900 text-slate-100 p-2 rounded border border-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 font-medium mb-1">Journal Prefix</label>
+                                <input type="text" value="JE-" class="w-full bg-slate-900 text-slate-100 p-2 rounded border border-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 font-medium mb-1">Bill Prefix</label>
+                                <input type="text" value="BILL-" class="w-full bg-slate-900 text-slate-100 p-2 rounded border border-slate-700">
+                            </div>
+                        </div>
+                        <button onclick="alert('Settings Saved Successfully!')" class="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white rounded font-medium">Save Settings</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 20: ECOSYSTEM SYNC HUB -->
+            <section id="tab-ecosystem" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            Ecosystem Integrations <span class="px-2 py-0.5 text-xs rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Live Sync</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Connected product streams feeding automatic entries into accounting.</p>
+                    </div>
+                </div>
+
+                <!-- Simulation Trigger Banner -->
+                <div class="glass-panel p-5 rounded-2xl border-emerald-500/30 space-y-3">
+                    <h3 class="text-sm font-bold text-white">Simulate Live Ecosystem Events</h3>
+                    <p class="text-xs text-slate-400">Click any simulated product event to instantly auto-post balanced double-entry journals into the General Ledger!</p>
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <button onclick="simulateEcosystemEvent('POS')" class="action-btn px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition shadow">
+                            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Simulate POS Daily Sales ($1,450)
+                        </button>
+                        <button onclick="simulateEcosystemEvent('HR')" class="action-btn px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition shadow">
+                            <i data-lucide="users" class="w-3.5 h-3.5"></i> Simulate Payroll Run ($6,000)
+                        </button>
+                        <button onclick="simulateEcosystemEvent('INVENTORY')" class="action-btn px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition shadow">
+                            <i data-lucide="package" class="w-3.5 h-3.5"></i> Simulate Stock Purchase ($3,200)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ecosystem Services Status Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="ecosystemGrid">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODALS CONTAINER -->
+
+    <!-- CREATE ACCOUNT MODAL -->
+    <div id="modal-create-account" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Create New Account</h3>
+                <button onclick="closeModal('modal-create-account')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleCreateAccount(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Account Code</label>
+                    <input type="text" id="newAccCode" required placeholder="e.g. 1030" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 focus:outline-none focus:border-accent-500">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Account Name</label>
+                    <input type="text" id="newAccName" required placeholder="e.g. PayPal Operating Account" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 focus:outline-none focus:border-accent-500">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Account Group / Type</label>
+                    <select id="newAccType" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 focus:outline-none focus:border-accent-500">
+                        <option value="Asset">Asset</option>
+                        <option value="Liability">Liability</option>
+                        <option value="Equity">Equity</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Opening Balance ($)</label>
+                    <input type="number" step="0.01" id="newAccOpening" value="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 focus:outline-none focus:border-accent-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-create-account')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-accent-600 text-white rounded font-medium">Save Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- NEW JOURNAL MODAL -->
+    <div id="modal-new-journal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-2xl rounded-2xl border border-slate-800 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Create Journal Entry</h3>
+                <button onclick="closeModal('modal-new-journal')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handlePostJournal(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Date</label>
+                        <input type="date" id="journalDate" required class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Journal Reference</label>
+                        <input type="text" id="journalRef" value="JE-2026-004" required class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Description / Memo</label>
+                    <input type="text" id="journalDesc" required placeholder="e.g. Monthly office rent allocation" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+
+                <!-- Journal Lines -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-300">Journal Lines</span>
+                        <button type="button" onclick="addJournalLineRow()" class="text-accent-400 hover:underline">+ Add Line</button>
+                    </div>
+                    <div id="journalLinesContainer" class="space-y-2">
+                        <!-- Dynamic Rows -->
+                    </div>
+                </div>
+
+                <!-- Validation Footer -->
+                <div class="p-3 bg-slate-950 rounded-lg flex items-center justify-between border border-slate-800">
+                    <div class="text-slate-400">
+                        <span>Total Debit: <strong id="totalDebitDisplay" class="text-slate-200">$0.00</strong></span> |
+                        <span>Total Credit: <strong id="totalCreditDisplay" class="text-slate-200">$0.00</strong></span>
+                    </div>
+                    <div id="journalBalanceStatus" class="font-bold text-rose-400 text-xs">
+                        ⚠️ Unbalanced (Diff: $0.00)
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-new-journal')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" id="submitJournalBtn" disabled class="px-4 py-1.5 bg-accent-600 opacity-50 cursor-not-allowed text-white rounded font-medium">Post Journal Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RECORD EXPENSE MODAL -->
+    <div id="modal-record-expense" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Record Business Expense</h3>
+                <button onclick="closeModal('modal-record-expense')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleRecordExpense(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Vendor / Supplier</label>
+                    <input type="text" id="expVendor" required placeholder="e.g. AWS Cloud Services" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Expense Account</label>
+                    <select id="expAccount" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="5500">5500 - General & Administrative</option>
+                        <option value="5100">5100 - Rent Expense</option>
+                        <option value="5300">5300 - Utilities Expense</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Amount ($)</label>
+                    <input type="number" step="0.01" id="expAmount" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Paid From</label>
+                    <select id="expPaidFrom" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="1010">1010 - Operating Bank Account</option>
+                        <option value="1020">1020 - Petty Cash</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-record-expense')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white rounded font-medium">Record Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RECORD INCOME MODAL -->
+    <div id="modal-record-income" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Record Income</h3>
+                <button onclick="closeModal('modal-record-income')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleRecordIncome(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Income Source / Category</label>
+                    <input type="text" id="incSource" required placeholder="e.g. Consulting Services Fee" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Credit Account</label>
+                    <select id="incAccount" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="4000">4000 - Sales Revenue</option>
+                        <option value="4100">4100 - Service Income</option>
+                        <option value="4200">4200 - Other Income</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Amount Received ($)</label>
+                    <input type="number" step="0.01" id="incAmount" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Deposit To</label>
+                    <select id="incDepositTo" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="1010">1010 - Operating Bank Account</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-record-income')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded font-medium">Record Income</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RECEIVE PAYMENT (AR) MODAL -->
+    <div id="modal-receive-payment" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Receive Customer Payment</h3>
+                <button onclick="closeModal('modal-receive-payment')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleReceivePayment(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Select Customer Invoice</label>
+                    <select id="arPaymentInvoiceSelect" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Payment Amount ($)</label>
+                    <input type="number" step="0.01" id="arPaymentAmount" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-receive-payment')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded font-medium">Process Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD SUPPLIER BILL (AP) MODAL -->
+    <div id="modal-add-bill" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Add Supplier Bill</h3>
+                <button onclick="closeModal('modal-add-bill')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleAddBill(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Supplier Name</label>
+                    <input type="text" id="billSupplier" required placeholder="e.g. Acme Tech Hardware" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Bill Number</label>
+                    <input type="text" id="billNumber" value="BILL-2026-08" required class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Bill Date</label>
+                        <input type="date" id="billDate" required class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Due Date</label>
+                        <input type="date" id="billDueDate" required class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Bill Amount ($)</label>
+                    <input type="number" step="0.01" id="billAmount" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-add-bill')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-amber-600 text-white rounded font-medium">Save Bill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAY SUPPLIER MODAL -->
+    <div id="modal-pay-supplier" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Record Supplier Payment</h3>
+                <button onclick="closeModal('modal-pay-supplier')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handlePaySupplier(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Select Bill to Pay</label>
+                    <select id="apPaymentBillSelect" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Payment Amount ($)</label>
+                    <input type="number" step="0.01" id="apPaymentAmount" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-pay-supplier')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded font-medium">Post Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TRANSFER FUNDS MODAL -->
+    <div id="modal-transfer" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Transfer Funds Between Accounts</h3>
+                <button onclick="closeModal('modal-transfer')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleFundTransfer(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">From Account</label>
+                    <select id="transferFrom" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="1010">1010 - Operating Bank Account</option>
+                        <option value="1020">1020 - Petty Cash</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">To Account</label>
+                    <select id="transferTo" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="1020">1020 - Petty Cash</option>
+                        <option value="1010">1010 - Operating Bank Account</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Transfer Amount ($)</label>
+                    <input type="number" step="0.01" id="transferAmount" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-transfer')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-sky-600 text-white rounded font-medium">Execute Transfer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD FIXED ASSET MODAL -->
+    <div id="modal-add-asset" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Add Fixed Asset</h3>
+                <button onclick="closeModal('modal-add-asset')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form onsubmit="handleAddAsset(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Asset Name</label>
+                    <input type="text" id="assetName" required placeholder="e.g. MacBook Pro M3 Workstation" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Category</label>
+                    <select id="assetCategory" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                        <option value="IT Equipment">IT Equipment</option>
+                        <option value="Office Furniture">Office Furniture</option>
+                        <option value="Vehicles">Vehicles</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Original Purchase Cost ($)</label>
+                    <input type="number" step="0.01" id="assetCost" required placeholder="0.00" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Useful Life (Years)</label>
+                    <input type="number" id="assetLife" value="5" required class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-add-asset')" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-accent-600 text-white rounded font-medium">Save Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QUICK ACTIONS MODAL -->
+    <div id="modal-quick-actions" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Financial Quick Actions</h3>
+                <button onclick="closeModal('modal-quick-actions')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <button onclick="closeModal('modal-quick-actions'); openModal('modal-record-expense')" class="p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left flex flex-col gap-1 transition">
+                    <i data-lucide="arrow-up-right" class="w-5 h-5 text-rose-400"></i>
+                    <span class="font-bold text-white">Record Expense</span>
+                    <span class="text-[10px] text-slate-400">Outflow transaction entry</span>
+                </button>
+                <button onclick="closeModal('modal-quick-actions'); openModal('modal-record-income')" class="p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left flex flex-col gap-1 transition">
+                    <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-400"></i>
+                    <span class="font-bold text-white">Record Income</span>
+                    <span class="text-[10px] text-slate-400">Inflow transaction entry</span>
+                </button>
+                <button onclick="closeModal('modal-quick-actions'); openModal('modal-new-journal')" class="p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left flex flex-col gap-1 transition">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5 text-accent-400"></i>
+                    <span class="font-bold text-white">New Journal</span>
+                    <span class="text-[10px] text-slate-400">Double-entry ledger adjustment</span>
+                </button>
+                <button onclick="closeModal('modal-quick-actions'); openModal('modal-add-bill')" class="p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left flex flex-col gap-1 transition">
+                    <i data-lucide="truck" class="w-5 h-5 text-amber-400"></i>
+                    <span class="font-bold text-white">Add Supplier Bill</span>
+                    <span class="text-[10px] text-slate-400">AP Bill posting</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- APPLICATION CORE JAVASCRIPT -->
+    <script>
+        // -------------------------------------------------------------
+        // APPLICATION STATE & STORAGE ENGINE
+        // -------------------------------------------------------------
+
+        const DEFAULT_STATE = {
+            company: { name: 'Apex Global Ltd', currency: 'USD', currencySymbol: '$', fyStart: 'January', currentRole: 'Admin' },
+            coa: [
+                { code: '1010', name: 'Operating Bank Account', type: 'Asset', parent: 'Cash & Equivalents', balance: 42850.00, active: true },
+                { code: '1020', name: 'Petty Cash', type: 'Asset', parent: 'Cash & Equivalents', balance: 1500.00, active: true },
+                { code: '1100', name: 'Accounts Receivable', type: 'Asset', parent: 'Current Assets', balance: 18400.00, active: true },
+                { code: '1200', name: 'Inventory Asset', type: 'Asset', parent: 'Current Assets', balance: 24000.00, active: true },
+                { code: '1500', name: 'Equipment & Furniture', type: 'Asset', parent: 'Fixed Assets', balance: 35000.00, active: true },
+                { code: '1550', name: 'Accumulated Depreciation - Equip', type: 'Asset', parent: 'Fixed Assets', balance: -7000.00, active: true },
+                { code: '2000', name: 'Accounts Payable', type: 'Liability', parent: 'Current Liabilities', balance: 12300.00, active: true },
+                { code: '2100', name: 'Sales Tax Payable (GST/VAT)', type: 'Liability', parent: 'Current Liabilities', balance: 2450.00, active: true },
+                { code: '2200', name: 'Accrued Salaries Payable', type: 'Liability', parent: 'Current Liabilities', balance: 3200.00, active: true },
+                { code: '3000', name: "Owner's Capital", type: 'Equity', parent: 'Equity', balance: 50000.00, active: true },
+                { code: '3900', name: 'Retained Earnings', type: 'Equity', parent: 'Equity', balance: 41800.00, active: true },
+                { code: '4000', name: 'Sales Revenue', type: 'Income', parent: 'Operating Revenue', balance: 84500.00, active: true },
+                { code: '4100', name: 'Service Income', type: 'Income', parent: 'Operating Revenue', balance: 18200.00, active: true },
+                { code: '4200', name: 'Other Income', type: 'Income', parent: 'Non-Operating Income', balance: 1800.00, active: true },
+                { code: '5000', name: 'Cost of Goods Sold', type: 'Expense', parent: 'Direct Expenses', balance: 32000.00, active: true },
+                { code: '5100', name: 'Rent Expense', type: 'Expense', parent: 'Operating Expenses', balance: 12000.00, active: true },
+                { code: '5200', name: 'Salaries Expense', type: 'Expense', parent: 'Operating Expenses', balance: 18000.00, active: true },
+                { code: '5300', name: 'Utilities Expense', type: 'Expense', parent: 'Operating Expenses', balance: 2400.00, active: true },
+                { code: '5400', name: 'Depreciation Expense', type: 'Expense', parent: 'Operating Expenses', balance: 3500.00, active: true },
+                { code: '5500', name: 'General & Administrative', type: 'Expense', parent: 'Operating Expenses', balance: 4600.00, active: true }
+            ],
+            journals: [
+                { ref: 'JE-2026-001', date: '2026-08-01', desc: 'Initial Capital Injection', status: 'Posted', lines: [ { code: '1010', debit: 50000, credit: 0 }, { code: '3000', debit: 0, credit: 50000 } ] },
+                { ref: 'JE-2026-002', date: '2026-08-02', desc: 'August Office Rent Payment', status: 'Posted', lines: [ { code: '5100', debit: 4000, credit: 0 }, { code: '1010', debit: 0, credit: 4000 } ] },
+                { ref: 'JE-2026-003', date: '2026-08-04', desc: 'Equipment Purchase Cash', status: 'Posted', lines: [ { code: '1500', debit: 5000, credit: 0 }, { code: '1010', debit: 0, credit: 5000 } ] }
+            ],
+            incomes: [
+                { date: '2026-08-02', ref: 'INC-101', source: 'Enterprise Software Sales', account: '4000', notes: 'Client: Acme Corp', amount: 12500.00 },
+                { date: '2026-08-05', ref: 'INC-102', source: 'Implementation Support', account: '4100', notes: 'Client: Global Logistics', amount: 4800.00 }
+            ],
+            expenses: [
+                { date: '2026-08-03', ref: 'EXP-801', vendor: 'AWS Cloud Hosting', account: '5500', method: 'Bank Transfer', amount: 1450.00, receipt: 'AWS_Inv_8832.pdf' },
+                { date: '2026-08-05', ref: 'EXP-802', vendor: 'City Electric Utility', account: '5300', method: 'Petty Cash', amount: 320.00, receipt: 'Utility_Receipt.jpg' }
+            ],
+            invoices: [
+                { number: 'INV-2026-01', customer: 'Starlight Retail', date: '2026-07-15', dueDate: '2026-08-15', amount: 8400.00, balance: 8400.00, status: 'Overdue' },
+                { number: 'INV-2026-02', customer: 'BlueWave Tech', date: '2026-08-01', dueDate: '2026-08-30', amount: 10000.00, balance: 10000.00, status: 'Pending' }
+            ],
+            bills: [
+                { number: 'BILL-2026-01', supplier: 'TechParts Supplies', date: '2026-07-20', dueDate: '2026-08-20', amount: 7300.00, status: 'Unpaid' },
+                { number: 'BILL-2026-02', supplier: 'Apex Landlord Co', date: '2026-08-01', dueDate: '2026-08-15', amount: 5000.00, status: 'Unpaid' }
+            ],
+            bankStatements: [
+                { id: 'b1', date: '2026-08-02', desc: 'Deposit - Starlight Retail', amount: 5000.00, reconciled: false },
+                { id: 'b2', date: '2026-08-03', desc: 'Direct Debit - AWS Hosting', amount: -1450.00, reconciled: true },
+                { id: 'b3', date: '2026-08-05', desc: 'Transfer - Petty Cash Topup', amount: -500.00, reconciled: false }
+            ],
+            assets: [
+                { code: 'AST-01', name: 'Workstation Laptops (5x)', category: 'IT Equipment', cost: 15000.00, life: 3, accumDep: 5000.00, purchaseDate: '2025-01-10' },
+                { code: 'AST-02', name: 'Executive Desk & Chairs', category: 'Office Furniture', cost: 20000.00, life: 5, accumDep: 2000.00, purchaseDate: '2025-06-15' }
+            ],
+            budgets: [
+                { category: '5100 - Rent Expense', annualBudget: 48000.00, actualYtd: 12000.00 },
+                { category: '5200 - Salaries Expense', annualBudget: 220000.00, actualYtd: 18000.00 },
+                { category: '5300 - Utilities Expense', annualBudget: 15000.00, actualYtd: 2400.00 },
+                { category: '5500 - General & Administrative', annualBudget: 30000.00, actualYtd: 4600.00 }
+            ],
+            documents: [
+                { name: 'AWS_August_Invoice.pdf', type: 'Receipt', date: '2026-08-03', size: '240 KB' },
+                { name: 'Office_Lease_Agreement.pdf', type: 'Contract', date: '2026-01-01', size: '1.4 MB' }
+            ],
+            ecosystem: [
+                { name: 'Invoicing App', status: 'Connected', lastSync: '2 mins ago', icon: 'file-text' },
+                { name: 'POS Retail Stream', status: 'Connected', lastSync: 'Just now', icon: 'shopping-cart' },
+                { name: 'CRM & Customers', status: 'Connected', lastSync: '10 mins ago', icon: 'users' },
+                { name: 'Inventory Valuation', status: 'Connected', lastSync: '1 hour ago', icon: 'package' },
+                { name: 'HR Payroll Sync', status: 'Connected', lastSync: 'Yesterday', icon: 'user-check' },
+                { name: 'Bank Live Feed', status: 'Connected', lastSync: '5 mins ago', icon: 'building' }
+            ]
+        };
+
+        let appState = JSON.parse(localStorage.getItem('apex_finance_state')) || DEFAULT_STATE;
+
+        function saveState() {
+            localStorage.setItem('apex_finance_state', JSON.stringify(appState));
+        }
+
+        function resetDemoData() {
+            if (confirm("Reset all financial data to demo default state?")) {
+                localStorage.removeItem('apex_finance_state');
+                appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                saveState();
+                location.reload();
+            }
+        }
+
+        // -------------------------------------------------------------
+        // TAB NAVIGATION & ROLE CONTROL ENGINE
+        // -------------------------------------------------------------
+
+        function switchTab(tabId) {
+            document.querySelectorAll('main section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('aside nav button').forEach(btn => btn.classList.remove('active-nav'));
+
+            const targetSection = document.getElementById('tab-' + tabId);
+            const targetNavBtn = document.getElementById('nav-' + tabId);
+
+            if (targetSection) targetSection.classList.remove('hidden');
+            if (targetNavBtn) targetNavBtn.classList.add('active-nav');
+
+            // Trigger specific tab renders
+            if (tabId === 'dashboard') renderDashboard();
+            if (tabId === 'chart-of-accounts') renderCOATable();
+            if (tabId === 'general-ledger') renderGeneralLedger();
+            if (tabId === 'journal-entries') renderJournalEntries();
+            if (tabId === 'income') renderIncomeTable();
+            if (tabId === 'expenses') renderExpenseTable();
+            if (tabId === 'receivables') renderAR();
+            if (tabId === 'payables') renderAP();
+            if (tabId === 'bank-cash') renderBankCash();
+            if (tabId === 'bank-recon') renderBankReconciliation();
+            if (tabId === 'tax-management') renderTaxManagement();
+            if (tabId === 'fixed-assets') renderAssetsTable();
+            if (tabId === 'budgeting') renderBudgetTable();
+            if (tabId === 'financial-reports') renderFinancialReport('pnl');
+            if (tabId === 'period-mgmt') renderPeriodGrid();
+            if (tabId === 'documents') renderDocuments();
+            if (tabId === 'ecosystem') renderEcosystem();
+
+            lucide.createIcons();
+        }
+
+        function changeUserRole(role) {
+            appState.company.currentRole = role;
+            document.getElementById('currentRoleLabel').innerText = role;
+            saveState();
+
+            // Handle read-only disables for View Only
+            const isReadOnly = role === 'View Only';
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.style.display = isReadOnly ? 'none' : 'flex';
+            });
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 1: DASHBOARD LOGIC & CHARTS
+        // -------------------------------------------------------------
+
+        let incExpChartInstance = null;
+        let expDonutInstance = null;
+
+        function renderDashboard() {
+            // Calculate KPI values directly from COA
+            const getBalance = (code) => {
+                const acc = appState.coa.find(a => a.code === code);
+                return acc ? acc.balance : 0;
+            };
+
+            const cashBal = getBalance('1010') + getBalance('1020');
+            const arBal = getBalance('1100');
+            const apBal = getBalance('2000');
+
+            const totalRev = appState.coa.filter(a => a.type === 'Income').reduce((s, a) => s + a.balance, 0);
+            const totalExp = appState.coa.filter(a => a.type === 'Expense').reduce((s, a) => s + a.balance, 0);
+            const netProfit = totalRev - totalExp;
+
+            document.getElementById('kpiCashBalance').innerText = formatCurr(cashBal);
+            document.getElementById('kpiAR').innerText = formatCurr(arBal);
+            document.getElementById('kpiAP').innerText = formatCurr(apBal);
+            document.getElementById('kpiNetProfit').innerText = formatCurr(netProfit);
+
+            // Dashboard Recent Transactions
+            const recentTxs = appState.journals.flatMap(j => j.lines.map(l => ({
+                date: j.date,
+                ref: j.ref,
+                desc: j.desc,
+                type: l.debit > 0 ? 'Debit' : 'Credit',
+                amount: l.debit > 0 ? l.debit : l.credit
+            }))).slice(0, 5);
+
+            document.getElementById('dashboardRecentTxTable').innerHTML = recentTxs.map(t => `
+                <tr>
+                    <td class="p-2.5 text-slate-300">${t.date}</td>
+                    <td class="p-2.5 font-mono text-accent-400">${t.ref}</td>
+                    <td class="p-2.5 text-slate-200">${t.desc}</td>
+                    <td class="p-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] ${t.type === 'Debit' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'}">${t.type}</span></td>
+                    <td class="p-2.5 text-right font-medium text-slate-100">${formatCurr(t.amount)}</td>
+                </tr>
+            `).join('');
+
+            renderDashboardCharts();
+        }
+
+        function renderDashboardCharts() {
+            // Chart 1: Bar Chart
+            const ctx1 = document.getElementById('incomeExpenseChart').getContext('2d');
+            if (incExpChartInstance) incExpChartInstance.destroy();
+
+            incExpChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                    datasets: [
+                        { label: 'Income', data: [14000, 18500, 16000, 21000, 19500, 22000], backgroundColor: '#10b981' },
+                        { label: 'Expenses', data: [9500, 12000, 10500, 14000, 13000, 15000], backgroundColor: '#f43f5e' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+                    scales: {
+                        x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+                        y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+
+            // Chart 2: Expense Donut Chart
+            const ctx2 = document.getElementById('expenseDonutChart').getContext('2d');
+            if (expDonutInstance) expDonutInstance.destroy();
+
+            const expAccs = appState.coa.filter(a => a.type === 'Expense');
+            expDonutInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: expAccs.map(a => a.name),
+                    datasets: [{
+                        data: expAccs.map(a => a.balance),
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 2: CHART OF ACCOUNTS (COA)
+        // -------------------------------------------------------------
+
+        let activeCOAFilter = 'All';
+
+        function renderCOATable() {
+            const tbody = document.getElementById('coaTableBody');
+            const search = (document.getElementById('coaSearch').value || '').toLowerCase();
+
+            const filtered = appState.coa.filter(acc => {
+                const matchGroup = activeCOAFilter === 'All' || acc.type === activeCOAFilter;
+                const matchSearch = acc.name.toLowerCase().includes(search) || acc.code.includes(search);
+                return matchGroup && matchSearch;
+            });
+
+            tbody.innerHTML = filtered.map(acc => `
+                <tr class="hover:bg-slate-900/50 transition">
+                    <td class="p-3 font-mono text-accent-400 font-medium">${acc.code}</td>
+                    <td class="p-3 font-semibold text-slate-100">${acc.name}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] ${getAccountTypeBadgeClass(acc.type)}">${acc.type}</span></td>
+                    <td class="p-3 text-slate-400">${acc.parent || '-'}</td>
+                    <td class="p-3 text-right font-mono font-semibold ${acc.balance < 0 ? 'text-rose-400' : 'text-slate-100'}">${formatCurr(acc.balance)}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${acc.active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500'}">
+                            ${acc.active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-right">
+                        <button onclick="toggleAccountActive('${acc.code}')" class="text-xs text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded">
+                            ${acc.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterCOAGroup(group) {
+            activeCOAFilter = group;
+            document.querySelectorAll('[id^="coaTab-"]').forEach(btn => {
+                btn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+            });
+            document.getElementById('coaTab-' + group).className = 'pb-2 border-b-2 border-accent-500 text-accent-400 font-semibold';
+            renderCOATable();
+        }
+
+        function filterCOATable() { renderCOATable(); }
+
+        function toggleAccountActive(code) {
+            const acc = appState.coa.find(a => a.code === code);
+            if (acc) {
+                acc.active = !acc.active;
+                saveState();
+                renderCOATable();
+            }
+        }
+
+        function handleCreateAccount(e) {
+            e.preventDefault();
+            const code = document.getElementById('newAccCode').value;
+            const name = document.getElementById('newAccName').value;
+            const type = document.getElementById('newAccType').value;
+            const opening = parseFloat(document.getElementById('newAccOpening').value) || 0;
+
+            if (appState.coa.some(a => a.code === code)) {
+                alert("Account code already exists!");
+                return;
+            }
+
+            appState.coa.push({ code, name, type, parent: type + 's', balance: opening, active: true });
+            saveState();
+            closeModal('modal-create-account');
+            renderCOATable();
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 3: GENERAL LEDGER
+        // -------------------------------------------------------------
+
+        function renderGeneralLedger() {
+            const select = document.getElementById('glAccountSelect');
+            if (select.children.length === 0) {
+                select.innerHTML = appState.coa.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+            }
+
+            const selectedCode = select.value || '1010';
+            const acc = appState.coa.find(a => a.code === selectedCode);
+
+            // Populate Account Summary Banner
+            document.getElementById('glAccountSummaryHeader').innerHTML = `
+                <div>
+                    <span class="text-xs text-slate-400">Selected Ledger Account</span>
+                    <h3 class="text-lg font-bold text-white">${acc.code} - ${acc.name}</h3>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div>
+                        <span class="text-xs text-slate-400">Account Type</span>
+                        <div class="text-sm font-semibold text-slate-200">${acc.type}</div>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400">Current Balance</span>
+                        <div class="text-xl font-bold font-mono text-emerald-400">${formatCurr(acc.balance)}</div>
+                    </div>
+                </div>
+            `;
+
+            // Filter journal lines for selected account
+            let running = 0;
+            const entries = [];
+
+            appState.journals.forEach(j => {
+                j.lines.filter(l => l.code === selectedCode).forEach(l => {
+                    if (acc.type === 'Asset' || acc.type === 'Expense') {
+                        running += (l.debit - l.credit);
+                    } else {
+                        running += (l.credit - l.debit);
+                    }
+                    entries.push({ date: j.date, ref: j.ref, desc: j.desc, debit: l.debit, credit: l.credit, running });
+                });
+            });
+
+            document.getElementById('glTableBody').innerHTML = entries.map(e => `
+                <tr class="hover:bg-slate-900/50 transition">
+                    <td class="p-3 text-slate-300">${e.date}</td>
+                    <td class="p-3 font-mono text-accent-400 font-medium">${e.ref}</td>
+                    <td class="p-3 text-slate-100">${e.desc}</td>
+                    <td class="p-3 text-right font-mono text-slate-200">${e.debit > 0 ? formatCurr(e.debit) : '-'}</td>
+                    <td class="p-3 text-right font-mono text-slate-200">${e.credit > 0 ? formatCurr(e.credit) : '-'}</td>
+                    <td class="p-3 text-right font-mono font-bold text-emerald-400">${formatCurr(e.running)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 4: JOURNAL ENTRIES ENGINE
+        // -------------------------------------------------------------
+
+        function renderJournalEntries() {
+            const tbody = document.getElementById('journalTableBody');
+            tbody.innerHTML = appState.journals.map(j => {
+                const total = j.lines.reduce((s, l) => s + l.debit, 0);
+                return `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="p-3 font-mono text-accent-400 font-bold">${j.ref}</td>
+                        <td class="p-3 text-slate-300">${j.date}</td>
+                        <td class="p-3 text-slate-100 font-medium">${j.desc}</td>
+                        <td class="p-3 text-slate-400 text-[11px]">${j.lines.length} lines</td>
+                        <td class="p-3 text-right font-mono font-semibold text-slate-100">${formatCurr(total)}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${j.status}</span>
+                        </td>
+                        <td class="p-3 text-right">
+                            <button onclick="reverseJournal('${j.ref}')" class="text-xs text-rose-400 hover:bg-rose-500/10 px-2 py-1 rounded">Reverse</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function addJournalLineRow() {
+            const container = document.getElementById('journalLinesContainer');
+            const rowId = 'jline_' + Date.now();
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = 'grid grid-cols-12 gap-2 items-center';
+            div.innerHTML = `
+                <div class="col-span-6">
+                    <select class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 text-xs j-acc-select">
+                        ${appState.coa.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="col-span-3">
+                    <input type="number" step="0.01" placeholder="Debit" oninput="calculateJournalTotals()" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 text-xs j-debit">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" step="0.01" placeholder="Credit" oninput="calculateJournalTotals()" class="w-full bg-slate-950 text-slate-100 p-2 rounded border border-slate-800 text-xs j-credit">
+                </div>
+                <div class="col-span-1 text-right">
+                    <button type="button" onclick="document.getElementById('${rowId}').remove(); calculateJournalTotals();" class="text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function calculateJournalTotals() {
+            let totalDebit = 0;
+            let totalCredit = 0;
+
+            document.querySelectorAll('.j-debit').forEach(i => totalDebit += parseFloat(i.value) || 0);
+            document.querySelectorAll('.j-credit').forEach(i => totalCredit += parseFloat(i.value) || 0);
+
+            document.getElementById('totalDebitDisplay').innerText = formatCurr(totalDebit);
+            document.getElementById('totalCreditDisplay').innerText = formatCurr(totalCredit);
+
+            const diff = Math.abs(totalDebit - totalCredit);
+            const status = document.getElementById('journalBalanceStatus');
+            const submitBtn = document.getElementById('submitJournalBtn');
+
+            if (diff < 0.01 && totalDebit > 0) {
+                status.className = 'font-bold text-emerald-400 text-xs';
+                status.innerText = '✓ Balanced';
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                status.className = 'font-bold text-rose-400 text-xs';
+                status.innerText = `⚠️ Unbalanced (Diff: ${formatCurr(diff)})`;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function handlePostJournal(e) {
+            e.preventDefault();
+            const date = document.getElementById('journalDate').value;
+            const ref = document.getElementById('journalRef').value;
+            const desc = document.getElementById('journalDesc').value;
+
+            const lines = [];
+            const rows = document.querySelectorAll('#journalLinesContainer > div');
+            rows.forEach(r => {
+                const code = r.querySelector('.j-acc-select').value;
+                const debit = parseFloat(r.querySelector('.j-debit').value) || 0;
+                const credit = parseFloat(r.querySelector('.j-credit').value) || 0;
+                lines.push({ code, debit, credit });
+
+                // Update COA balances automatically
+                const acc = appState.coa.find(a => a.code === code);
+                if (acc) {
+                    if (acc.type === 'Asset' || acc.type === 'Expense') {
+                        acc.balance += (debit - credit);
+                    } else {
+                        acc.balance += (credit - debit);
+                    }
+                }
+            });
+
+            appState.journals.unshift({ ref, date, desc, status: 'Posted', lines });
+            saveState();
+            closeModal('modal-new-journal');
+            renderJournalEntries();
+            alert("Journal Entry Posted Successfully to General Ledger!");
+        }
+
+        function reverseJournal(ref) {
+            const orig = appState.journals.find(j => j.ref === ref);
+            if (!orig) return;
+
+            if (confirm(`Reverse journal ${ref}?`)) {
+                const revRef = 'REV-' + orig.ref;
+                const revLines = orig.lines.map(l => ({
+                    code: l.code,
+                    debit: l.credit,
+                    credit: l.debit
+                }));
+
+                // Apply reversal to COA
+                revLines.forEach(l => {
+                    const acc = appState.coa.find(a => a.code === l.code);
+                    if (acc) {
+                        if (acc.type === 'Asset' || acc.type === 'Expense') {
+                            acc.balance += (l.debit - l.credit);
+                        } else {
+                            acc.balance += (l.credit - l.debit);
+                        }
+                    }
+                });
+
+                appState.journals.unshift({
+                    ref: revRef,
+                    date: new Date().toISOString().split('T')[0],
+                    desc: 'Reversal of ' + orig.ref,
+                    status: 'Reversal',
+                    lines: revLines
+                });
+
+                saveState();
+                renderJournalEntries();
+            }
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 5 & 6: INCOME & EXPENSE MANAGEMENT
+        // -------------------------------------------------------------
+
+        function renderIncomeTable() {
+            document.getElementById('incomeTableBody').innerHTML = appState.incomes.map(inc => `
+                <tr class="hover:bg-slate-900/50 transition">
+                    <td class="p-3 text-slate-300">${inc.date}</td>
+                    <td class="p-3 font-mono text-accent-400 font-bold">${inc.ref}</td>
+                    <td class="p-3 font-semibold text-slate-100">${inc.source}</td>
+                    <td class="p-3 text-slate-400 font-mono">${inc.account}</td>
+                    <td class="p-3 text-slate-400">${inc.notes || '-'}</td>
+                    <td class="p-3 text-right font-mono font-bold text-emerald-400">${formatCurr(inc.amount)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function handleRecordIncome(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const source = document.getElementById('incSource')?.value || 'Retail POS Day End';
+            const account = document.getElementById('incAccount')?.value || '4000';
+            const amount = parseFloat(document.getElementById('incAmount')?.value) || 1450.00;
+            const depositTo = document.getElementById('incDepositTo')?.value || '1010';
+
+            const date = new Date().toISOString().split('T')[0];
+            const ref = 'INC-' + Math.floor(100 + Math.random() * 900);
+
+            appState.incomes.unshift({ date, ref, source, account, amount });
+
+            // Auto Double-Entry Journal
+            appState.journals.unshift({
+                ref: 'JE-' + ref,
+                date,
+                desc: 'Income Record: ' + source,
+                status: 'Posted',
+                lines: [
+                    { code: depositTo, debit: amount, credit: 0 },
+                    { code: account, debit: 0, credit: amount }
+                ]
+            });
+
+            // Update COA
+            const accInc = appState.coa.find(a => a.code === account);
+            if (accInc) accInc.balance += amount;
+            const accDep = appState.coa.find(a => a.code === depositTo);
+            if (accDep) accDep.balance += amount;
+
+            saveState();
+            closeModal('modal-record-income');
+            renderIncomeTable();
+        }
+
+        function renderExpenseTable() {
+            document.getElementById('expenseTableBody').innerHTML = appState.expenses.map(exp => `
+                <tr class="hover:bg-slate-900/50 transition">
+                    <td class="p-3 text-slate-300">${exp.date}</td>
+                    <td class="p-3 font-mono text-rose-400 font-bold">${exp.ref}</td>
+                    <td class="p-3 font-semibold text-slate-100">${exp.vendor}</td>
+                    <td class="p-3 text-slate-400 font-mono">${exp.account}</td>
+                    <td class="p-3 text-slate-300">${exp.method}</td>
+                    <td class="p-3 text-right font-mono font-bold text-rose-400">${formatCurr(exp.amount)}</td>
+                    <td class="p-3 text-center">
+                        ${exp.receipt ? `<button onclick="alert('Viewing receipt: ${exp.receipt}')" class="text-xs text-accent-400 hover:underline"><i data-lucide="paperclip" class="w-3.5 h-3.5 inline"></i> View</button>` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function handleRecordExpense(e) {
+            e.preventDefault();
+            const vendor = document.getElementById('expVendor').value;
+            const account = document.getElementById('expAccount').value;
+            const amount = parseFloat(document.getElementById('expAmount').value);
+            const paidFrom = document.getElementById('expPaidFrom').value;
+
+            const date = new Date().toISOString().split('T')[0];
+            const ref = 'EXP-' + Math.floor(100 + Math.random() * 900);
+
+            appState.expenses.unshift({ date, ref, vendor, account, method: 'Bank', amount });
+
+            // Auto Double Entry
+            appState.journals.unshift({
+                ref: 'JE-' + ref,
+                date,
+                desc: 'Expense: ' + vendor,
+                status: 'Posted',
+                lines: [
+                    { code: account, debit: amount, credit: 0 },
+                    { code: paidFrom, debit: 0, credit: amount }
+                ]
+            });
+
+            // Update COA
+            const accExp = appState.coa.find(a => a.code === account);
+            if (accExp) accExp.balance += amount;
+            const accPaid = appState.coa.find(a => a.code === paidFrom);
+            if (accPaid) accPaid.balance -= amount;
+
+            saveState();
+            closeModal('modal-record-expense');
+            renderExpenseTable();
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 7: ACCOUNTS RECEIVABLE (AR)
+        // -------------------------------------------------------------
+
+        function renderAR() {
+            // Populate Customer Aging
+            const aging = [
+                { name: 'Starlight Retail', c: 8400, d30: 0, d60: 0, d90: 0, total: 8400 },
+                { name: 'BlueWave Tech', c: 10000, d30: 0, d60: 0, d90: 0, total: 10000 }
+            ];
+
+            document.getElementById('arAgingTableBody').innerHTML = aging.map(a => `
+                <tr>
+                    <td class="p-2.5 font-bold text-slate-100">${a.name}</td>
+                    <td class="p-2.5 text-right font-mono text-emerald-400">${formatCurr(a.c)}</td>
+                    <td class="p-2.5 text-right font-mono text-slate-400">$0.00</td>
+                    <td class="p-2.5 text-right font-mono text-slate-400">$0.00</td>
+                    <td class="p-2.5 text-right font-mono text-slate-400">$0.00</td>
+                    <td class="p-2.5 text-right font-mono font-bold text-slate-100">${formatCurr(a.total)}</td>
+                    <td class="p-2.5 text-right">
+                        <button onclick="generateCustomerStatement('${a.name}')" class="text-xs text-accent-400 hover:underline">Statement</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Populate Invoices
+            document.getElementById('arInvoicesTableBody').innerHTML = appState.invoices.map(inv => `
+                <tr>
+                    <td class="p-2.5 font-mono text-accent-400 font-bold">${inv.number}</td>
+                    <td class="p-2.5 text-slate-100 font-medium">${inv.customer}</td>
+                    <td class="p-2.5 text-slate-400">${inv.date}</td>
+                    <td class="p-2.5 text-slate-400">${inv.dueDate}</td>
+                    <td class="p-2.5 text-right font-mono text-slate-200">${formatCurr(inv.amount)}</td>
+                    <td class="p-2.5 text-right font-mono font-bold text-rose-400">${formatCurr(inv.balance)}</td>
+                    <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20">${inv.status}</span></td>
+                </tr>
+            `).join('');
+
+            // Populate Invoice Select in payment modal
+            const sel = document.getElementById('arPaymentInvoiceSelect');
+            sel.innerHTML = appState.invoices.filter(i => i.balance > 0).map(i => `<option value="${i.number}">${i.number} - ${i.customer} (Bal: ${formatCurr(i.balance)})</option>`).join('');
+        }
+
+        function handleReceivePayment(e) {
+            e.preventDefault();
+            const invNum = document.getElementById('arPaymentInvoiceSelect').value;
+            const amt = parseFloat(document.getElementById('arPaymentAmount').value);
+
+            const inv = appState.invoices.find(i => i.number === invNum);
+            if (inv) {
+                inv.balance = Math.max(0, inv.balance - amt);
+                if (inv.balance === 0) inv.status = 'Paid';
+
+                // Double Entry
+                appState.journals.unshift({
+                    ref: 'JE-PMT-' + invNum,
+                    date: new Date().toISOString().split('T')[0],
+                    desc: 'Customer Payment received for ' + invNum,
+                    status: 'Posted',
+                    lines: [
+                        { code: '1010', debit: amt, credit: 0 },
+                        { code: '1100', debit: 0, credit: amt }
+                    ]
+                });
+
+                // Update COA
+                appState.coa.find(a => a.code === '1010').balance += amt;
+                appState.coa.find(a => a.code === '1100').balance -= amt;
+
+                saveState();
+                closeModal('modal-receive-payment');
+                renderAR();
+                alert("Payment Applied Successfully!");
+            }
+        }
+
+        function generateCustomerStatement(customer) {
+            alert(`Generating Customer Account Statement for ${customer} (PDF format preview ready).`);
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 8: ACCOUNTS PAYABLE (AP)
+        // -------------------------------------------------------------
+
+        function renderAP() {
+            const aging = [
+                { name: 'TechParts Supplies', c: 7300, total: 7300 },
+                { name: 'Apex Landlord Co', c: 5000, total: 5000 }
+            ];
+
+            document.getElementById('apAgingTableBody').innerHTML = aging.map(a => `
+                <tr>
+                    <td class="p-2.5 font-bold text-slate-100">${a.name}</td>
+                    <td class="p-2.5 text-right font-mono text-emerald-400">${formatCurr(a.c)}</td>
+                    <td class="p-2.5 text-right font-mono text-slate-400">$0.00</td>
+                    <td class="p-2.5 text-right font-mono text-slate-400">$0.00</td>
+                    <td class="p-2.5 text-right font-mono text-slate-400">$0.00</td>
+                    <td class="p-2.5 text-right font-mono font-bold text-amber-400">${formatCurr(a.total)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('apBillsTableBody').innerHTML = appState.bills.map(b => `
+                <tr>
+                    <td class="p-2.5 font-mono text-amber-400 font-bold">${b.number}</td>
+                    <td class="p-2.5 text-slate-100 font-medium">${b.supplier}</td>
+                    <td class="p-2.5 text-slate-400">${b.date}</td>
+                    <td class="p-2.5 text-slate-400">${b.dueDate}</td>
+                    <td class="p-2.5 text-right font-mono font-bold text-slate-100">${formatCurr(b.amount)}</td>
+                    <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20">${b.status}</span></td>
+                </tr>
+            `).join('');
+
+            const sel = document.getElementById('apPaymentBillSelect');
+            sel.innerHTML = appState.bills.map(b => `<option value="${b.number}">${b.number} - ${b.supplier} (${formatCurr(b.amount)})</option>`).join('');
+        }
+
+        function handleAddBill(e) {
+            e.preventDefault();
+            const supplier = document.getElementById('billSupplier').value;
+            const number = document.getElementById('billNumber').value;
+            const date = document.getElementById('billDate').value;
+            const dueDate = document.getElementById('billDueDate').value;
+            const amount = parseFloat(document.getElementById('billAmount').value);
+
+            appState.bills.unshift({ number, supplier, date, dueDate, amount, status: 'Unpaid' });
+
+            // Double Entry: Expense/Inventory Dr, AP Cr
+            appState.journals.unshift({
+                ref: 'JE-' + number,
+                date,
+                desc: 'Supplier Bill: ' + supplier,
+                status: 'Posted',
+                lines: [
+                    { code: '5000', debit: amount, credit: 0 },
+                    { code: '2000', debit: 0, credit: amount }
+                ]
+            });
+
+            appState.coa.find(a => a.code === '5000').balance += amount;
+            appState.coa.find(a => a.code === '2000').balance += amount;
+
+            saveState();
+            closeModal('modal-add-bill');
+            renderAP();
+        }
+
+        function handlePaySupplier(e) {
+            e.preventDefault();
+            const billNum = document.getElementById('apPaymentBillSelect').value;
+            const amt = parseFloat(document.getElementById('apPaymentAmount').value);
+
+            const bill = appState.bills.find(b => b.number === billNum);
+            if (bill) {
+                bill.status = 'Paid';
+
+                // Double Entry
+                appState.journals.unshift({
+                    ref: 'JE-SUPPMT-' + billNum,
+                    date: new Date().toISOString().split('T')[0],
+                    desc: 'Paid Supplier Bill ' + billNum,
+                    status: 'Posted',
+                    lines: [
+                        { code: '2000', debit: amt, credit: 0 },
+                        { code: '1010', debit: 0, credit: amt }
+                    ]
+                });
+
+                appState.coa.find(a => a.code === '2000').balance -= amt;
+                appState.coa.find(a => a.code === '1010').balance -= amt;
+
+                saveState();
+                closeModal('modal-pay-supplier');
+                renderAP();
+                alert("Supplier Payment Recorded!");
+            }
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 9: BANK & CASH & RECONCILIATION
+        // -------------------------------------------------------------
+
+        function renderBankCash() {
+            const bankAcc = appState.coa.find(a => a.code === '1010');
+            const pettyAcc = appState.coa.find(a => a.code === '1020');
+
+            document.getElementById('bankAccountCards').innerHTML = `
+                <div class="glass-panel p-5 rounded-2xl border-accent-500/20 space-y-3">
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span class="text-xs font-semibold">Operating Bank Account</span>
+                        <i data-lucide="building-2" class="w-5 h-5 text-accent-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-white">${formatCurr(bankAcc.balance)}</div>
+                    <div class="text-[11px] text-slate-400">Account Code: 1010</div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border-emerald-500/20 space-y-3">
+                    <div class="flex justify-between items-center text-slate-400">
+                        <span class="text-xs font-semibold">Petty Cash In-Hand</span>
+                        <i data-lucide="coins" class="w-5 h-5 text-emerald-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-white">${formatCurr(pettyAcc.balance)}</div>
+                    <div class="text-[11px] text-slate-400">Account Code: 1020</div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function handleFundTransfer(e) {
+            e.preventDefault();
+            const from = document.getElementById('transferFrom').value;
+            const to = document.getElementById('transferTo').value;
+            const amt = parseFloat(document.getElementById('transferAmount').value);
+
+            if (from === to) {
+                alert("Transfer source and destination must be different!");
+                return;
+            }
+
+            appState.journals.unshift({
+                ref: 'JE-XFER-' + Math.floor(100 + Math.random() * 900),
+                date: new Date().toISOString().split('T')[0],
+                desc: 'Internal Account Transfer',
+                status: 'Posted',
+                lines: [
+                    { code: to, debit: amt, credit: 0 },
+                    { code: from, debit: 0, credit: amt }
+                ]
+            });
+
+            appState.coa.find(a => a.code === to).balance += amt;
+            appState.coa.find(a => a.code === from).balance -= amt;
+
+            saveState();
+            closeModal('modal-transfer');
+            renderBankCash();
+            alert("Transfer Completed!");
+        }
+
+        function renderBankReconciliation() {
+            // Render bank statement lines
+            document.getElementById('bankStatementLinesBody').innerHTML = appState.bankStatements.map(st => `
+                <tr class="${st.reconciled ? 'opacity-40' : ''}">
+                    <td class="p-2 text-slate-300">${st.date}</td>
+                    <td class="p-2 font-medium text-slate-100">${st.desc}</td>
+                    <td class="p-2 text-right font-mono font-bold ${st.amount > 0 ? 'text-emerald-400' : 'text-slate-100'}">${formatCurr(st.amount)}</td>
+                    <td class="p-2 text-center">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] ${st.reconciled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+                            ${st.reconciled ? 'Matched' : 'Unreconciled'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Render book cash entries
+            const bookTxs = appState.journals.flatMap(j => j.lines.filter(l => l.code === '1010').map(l => ({
+                date: j.date,
+                desc: j.desc,
+                amount: l.debit > 0 ? l.debit : -l.credit
+            })));
+
+            document.getElementById('bookLedgerLinesBody').innerHTML = bookTxs.map(b => `
+                <tr>
+                    <td class="p-2 text-slate-300">${b.date}</td>
+                    <td class="p-2 text-slate-100">${b.desc}</td>
+                    <td class="p-2 text-right font-mono font-bold text-slate-100">${formatCurr(b.amount)}</td>
+                    <td class="p-2 text-center">
+                        <button onclick="alert('Manual match applied.')" class="px-2 py-0.5 bg-accent-600 text-white rounded text-[10px]">Match</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function autoMatchReconciliation() {
+            appState.bankStatements.forEach(st => st.reconciled = true);
+            saveState();
+            renderBankReconciliation();
+            alert("Auto-Match Engine executed: 100% of statement lines matched!");
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 10: TAX MANAGEMENT
+        // -------------------------------------------------------------
+
+        function renderTaxManagement() {
+            document.getElementById('taxTableBody').innerHTML = `
+                <tr>
+                    <td class="p-2.5 text-slate-300">2026-08-01</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400">Output GST</span></td>
+                    <td class="p-2.5 font-mono text-slate-400">INV-2026-01</td>
+                    <td class="p-2.5 text-slate-100">Customer Sales Tax (10%)</td>
+                    <td class="p-2.5 text-right font-mono text-slate-200">$84,500.00</td>
+                    <td class="p-2.5 text-right font-mono font-bold text-emerald-400">$8,450.00</td>
+                </tr>
+                <tr>
+                    <td class="p-2.5 text-slate-300">2026-08-03</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-400">Input GST</span></td>
+                    <td class="p-2.5 font-mono text-slate-400">BILL-2026-01</td>
+                    <td class="p-2.5 text-slate-100">Supplier Purchase Input Credit</td>
+                    <td class="p-2.5 text-right font-mono text-slate-200">$32,000.00</td>
+                    <td class="p-2.5 text-right font-mono font-bold text-rose-400">$3,200.00</td>
+                </tr>
+            `;
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 11: FIXED ASSET DEPRECIATION ENGINE
+        // -------------------------------------------------------------
+
+        function renderAssetsTable() {
+            document.getElementById('assetsTableBody').innerHTML = appState.assets.map(ast => {
+                const bookVal = ast.cost - ast.accumDep;
+                return `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="p-3 font-mono text-accent-400 font-bold">${ast.code}</td>
+                        <td class="p-3 font-semibold text-slate-100">${ast.name}</td>
+                        <td class="p-3 text-slate-400">${ast.category}</td>
+                        <td class="p-3 text-slate-400">${ast.purchaseDate}</td>
+                        <td class="p-3 text-right font-mono text-slate-200">${formatCurr(ast.cost)}</td>
+                        <td class="p-3 text-right font-mono text-slate-300">${ast.life} yrs</td>
+                        <td class="p-3 text-right font-mono text-rose-400">${formatCurr(ast.accumDep)}</td>
+                        <td class="p-3 text-right font-mono font-bold text-emerald-400">${formatCurr(bookVal)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleAddAsset(e) {
+            e.preventDefault();
+            const name = document.getElementById('assetName').value;
+            const category = document.getElementById('assetCategory').value;
+            const cost = parseFloat(document.getElementById('assetCost').value);
+            const life = parseInt(document.getElementById('assetLife').value);
+
+            const code = 'AST-0' + (appState.assets.length + 1);
+            const purchaseDate = new Date().toISOString().split('T')[0];
+
+            appState.assets.push({ code, name, category, cost, life, accumDep: 0, purchaseDate });
+
+            // Post asset purchase journal
+            appState.journals.unshift({
+                ref: 'JE-AST-' + code,
+                date: purchaseDate,
+                desc: 'Fixed Asset Acquisition: ' + name,
+                status: 'Posted',
+                lines: [
+                    { code: '1500', debit: cost, credit: 0 },
+                    { code: '1010', debit: 0, credit: cost }
+                ]
+            });
+
+            appState.coa.find(a => a.code === '1500').balance += cost;
+            appState.coa.find(a => a.code === '1010').balance -= cost;
+
+            saveState();
+            closeModal('modal-add-asset');
+            renderAssetsTable();
+        }
+
+        function runMonthlyDepreciation() {
+            let totalMonthlyDep = 0;
+            appState.assets.forEach(ast => {
+                const monthly = (ast.cost / ast.life) / 12;
+                ast.accumDep += monthly;
+                totalMonthlyDep += monthly;
+            });
+
+            // Post Depreciation Journal Entry
+            appState.journals.unshift({
+                ref: 'JE-DEP-' + Math.floor(100 + Math.random() * 900),
+                date: new Date().toISOString().split('T')[0],
+                desc: 'Monthly Straight-Line Depreciation Entry',
+                status: 'Posted',
+                lines: [
+                    { code: '5400', debit: totalMonthlyDep, credit: 0 },
+                    { code: '1550', debit: 0, credit: totalMonthlyDep }
+                ]
+            });
+
+            appState.coa.find(a => a.code === '5400').balance += totalMonthlyDep;
+            appState.coa.find(a => a.code === '1550').balance -= totalMonthlyDep;
+
+            saveState();
+            renderAssetsTable();
+            alert(`Monthly Depreciation of ${formatCurr(totalMonthlyDep)} posted to General Ledger!`);
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 12: BUDGETING & VARIANCE
+        // -------------------------------------------------------------
+
+        function renderBudgetTable() {
+            document.getElementById('budgetTableBody').innerHTML = appState.budgets.map(b => {
+                const variance = b.annualBudget - b.actualYtd;
+                const varPct = ((b.actualYtd / b.annualBudget) * 100).toFixed(1);
+                const isOver = b.actualYtd > (b.annualBudget / 12) * 8; // simplified pace check
+
+                return `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="p-3 font-semibold text-slate-100">${b.category}</td>
+                        <td class="p-3 text-right font-mono text-slate-300">${formatCurr(b.annualBudget)}</td>
+                        <td class="p-3 text-right font-mono text-slate-100 font-bold">${formatCurr(b.actualYtd)}</td>
+                        <td class="p-3 text-right font-mono text-emerald-400 font-bold">${formatCurr(variance)}</td>
+                        <td class="p-3 text-right font-mono text-slate-300">${varPct}%</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-0.5 rounded text-[10px] ${isOver ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
+                                ${isOver ? 'Under Pace' : 'On Target'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 13: FINANCIAL REPORTS SUITE
+        // -------------------------------------------------------------
+
+        function renderFinancialReport(type) {
+            document.querySelectorAll('[id^="repTab-"]').forEach(btn => {
+                btn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+            });
+            document.getElementById('repTab-' + type).className = 'pb-2 border-b-2 border-accent-500 text-accent-400 font-semibold';
+
+            const viewer = document.getElementById('reportViewer');
+
+            if (type === 'pnl') {
+                const revenues = appState.coa.filter(a => a.type === 'Income');
+                const expenses = appState.coa.filter(a => a.type === 'Expense');
+
+                const totalRev = revenues.reduce((s, a) => s + a.balance, 0);
+                const totalExp = expenses.reduce((s, a) => s + a.balance, 0);
+                const netProfit = totalRev - totalExp;
+
+                viewer.innerHTML = `
+                    <div class="border-b border-slate-800 pb-4 text-center">
+                        <h2 class="text-xl font-bold text-white tracking-wide">APEX GLOBAL LTD</h2>
+                        <h3 class="text-sm font-semibold text-accent-400 mt-1">PROFIT & LOSS STATEMENT</h3>
+                        <p class="text-xs text-slate-400">For Period Ending August 31, 2026</p>
+                    </div>
+
+                    <div class="space-y-6 text-xs">
+                        <div>
+                            <div class="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-2 text-sm">REVENUE</div>
+                            ${revenues.map(r => `
+                                <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                    <span class="text-slate-300">${r.code} - ${r.name}</span>
+                                    <span class="font-mono text-slate-100">${formatCurr(r.balance)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="flex justify-between font-bold text-sm py-2 text-emerald-400">
+                                <span>TOTAL OPERATING REVENUE</span>
+                                <span class="font-mono">${formatCurr(totalRev)}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-2 text-sm">OPERATING EXPENSES</div>
+                            ${expenses.map(e => `
+                                <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                    <span class="text-slate-300">${e.code} - ${e.name}</span>
+                                    <span class="font-mono text-slate-100">${formatCurr(e.balance)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="flex justify-between font-bold text-sm py-2 text-rose-400">
+                                <span>TOTAL OPERATING EXPENSES</span>
+                                <span class="font-mono">${formatCurr(totalExp)}</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-sm font-bold">
+                            <span class="text-white">NET PROFIT / (LOSS)</span>
+                            <span class="font-mono text-xl text-emerald-400">${formatCurr(netProfit)}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'bs') {
+                const assets = appState.coa.filter(a => a.type === 'Asset');
+                const liabilities = appState.coa.filter(a => a.type === 'Liability');
+                const equity = appState.coa.filter(a => a.type === 'Equity');
+
+                const totalAssets = assets.reduce((s, a) => s + a.balance, 0);
+                const totalLiab = liabilities.reduce((s, a) => s + a.balance, 0);
+                const totalEquity = equity.reduce((s, a) => s + a.balance, 0);
+
+                viewer.innerHTML = `
+                    <div class="border-b border-slate-800 pb-4 text-center">
+                        <h2 class="text-xl font-bold text-white tracking-wide">APEX GLOBAL LTD</h2>
+                        <h3 class="text-sm font-semibold text-sky-400 mt-1">BALANCE SHEET STATEMENT</h3>
+                        <p class="text-xs text-slate-400">As of August 31, 2026</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                        <div>
+                            <div class="font-bold text-sky-400 border-b border-slate-800 pb-1 mb-2 text-sm">ASSETS</div>
+                            ${assets.map(a => `
+                                <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                    <span class="text-slate-300">${a.name}</span>
+                                    <span class="font-mono text-slate-100">${formatCurr(a.balance)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="flex justify-between font-bold py-2 text-sm text-sky-400 mt-4 border-t border-slate-700">
+                                <span>TOTAL ASSETS</span>
+                                <span class="font-mono">${formatCurr(totalAssets)}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="font-bold text-amber-400 border-b border-slate-800 pb-1 mb-2 text-sm">LIABILITIES & EQUITY</div>
+                            ${liabilities.map(l => `
+                                <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                    <span class="text-slate-300">${l.name}</span>
+                                    <span class="font-mono text-slate-100">${formatCurr(l.balance)}</span>
+                                </div>
+                            `).join('')}
+                            ${equity.map(e => `
+                                <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                    <span class="text-slate-300">${e.name}</span>
+                                    <span class="font-mono text-slate-100">${formatCurr(e.balance)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="flex justify-between font-bold py-2 text-sm text-amber-400 mt-4 border-t border-slate-700">
+                                <span>TOTAL LIABILITIES & EQUITY</span>
+                                <span class="font-mono">${formatCurr(totalLiab + totalEquity)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'tb') {
+                viewer.innerHTML = `
+                    <div class="border-b border-slate-800 pb-4 text-center">
+                        <h2 class="text-xl font-bold text-white tracking-wide">APEX GLOBAL LTD</h2>
+                        <h3 class="text-sm font-semibold text-purple-400 mt-1">UNADJUSTED TRIAL BALANCE</h3>
+                    </div>
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-950 border-b border-slate-800 text-slate-400">
+                            <tr><th class="p-2">Account</th><th class="p-2 text-right">Debit ($)</th><th class="p-2 text-right">Credit ($)</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            ${appState.coa.map(a => `
+                                <tr>
+                                    <td class="p-2 text-slate-200">${a.code} - ${a.name}</td>
+                                    <td class="p-2 text-right font-mono">${a.balance > 0 && (a.type === 'Asset' || a.type === 'Expense') ? formatCurr(a.balance) : '-'}</td>
+                                    <td class="p-2 text-right font-mono">${a.balance > 0 && (a.type !== 'Asset' && a.type !== 'Expense') ? formatCurr(a.balance) : '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        function exportReportToExcel() {
+            const data = appState.coa.map(a => ({ Code: a.code, Name: a.name, Type: a.type, Balance: a.balance }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Financial_Report");
+            XLSX.writeFile(wb, "ApexFinance_Report.xlsx");
+        }
+
+        // -------------------------------------------------------------
+        // MODULE 14, 15, 16, 20 AUXILIARY LOGIC
+        // -------------------------------------------------------------
+
+        function renderPeriodGrid() {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            document.getElementById('periodGrid').innerHTML = months.map((m, idx) => {
+                const isClosed = idx < 7; // Jan-Jul closed
+                return `
+                    <div class="glass-panel p-3 rounded-xl text-center space-y-1">
+                        <div class="font-bold text-white text-xs">${m} 2026</div>
+                        <span class="px-2 py-0.5 rounded text-[10px] ${isClosed ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
+                            ${isClosed ? '🔒 Locked' : '🟢 Open'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDocuments() {
+            document.getElementById('documentGrid').innerHTML = appState.documents.map(d => `
+                <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="file-text" class="w-8 h-8 text-accent-400"></i>
+                        <div>
+                            <div class="font-bold text-white text-xs">${d.name}</div>
+                            <div class="text-[10px] text-slate-400">${d.type} • ${d.size}</div>
+                        </div>
+                    </div>
+                    <button onclick="alert('Downloading ${d.name}')" class="text-slate-400 hover:text-white"><i data-lucide="download" class="w-4 h-4"></i></button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderEcosystem() {
+            document.getElementById('ecosystemGrid').innerHTML = appState.ecosystem.map(e => `
+                <div class="glass-panel p-4 rounded-xl space-y-2 border-emerald-500/20">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="${e.icon}" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-bold text-white text-xs">${e.name}</span>
+                        </div>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400">Live</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400">Last Synced Event: ${e.lastSync}</div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function simulateEcosystemEvent(type) {
+            if (type === 'POS') {
+                handleRecordIncome({ preventDefault: () => {} });
+                alert("POS Event Simulated: Daily Retail Sales $1,450 automatically posted to General Ledger!");
+            } else if (type === 'HR') {
+                alert("HR Payroll Event Simulated: $6,000 Salaries Expense & Accrued Payroll Journal Posted!");
+            } else if (type === 'INVENTORY') {
+                alert("Inventory Event Simulated: Stock Purchase Bill $3,200 Posted to Accounts Payable!");
+            }
+        }
+
+        // -------------------------------------------------------------
+        // SEARCH & HELPER FUNCTIONS
+        // -------------------------------------------------------------
+
+        function handleGlobalSearch(query) {
+            const container = document.getElementById('searchResultsContainer');
+            const list = document.getElementById('searchResultsList');
+
+            if (!query || query.trim().length < 2) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            query = query.toLowerCase();
+            const results = [];
+
+            appState.coa.forEach(a => {
+                if (a.name.toLowerCase().includes(query) || a.code.includes(query)) {
+                    results.push({ type: 'Account', title: `${a.code} - ${a.name}`, tab: 'chart-of-accounts' });
+                }
+            });
+
+            appState.journals.forEach(j => {
+                if (j.ref.toLowerCase().includes(query) || j.desc.toLowerCase().includes(query)) {
+                    results.push({ type: 'Journal', title: `${j.ref}: ${j.desc}`, tab: 'journal-entries' });
+                }
+            });
+
+            list.innerHTML = results.map(r => `
+                <div onclick="switchTab('${r.tab}'); document.getElementById('searchResultsContainer').classList.add('hidden');" class="p-2 hover:bg-slate-800 rounded cursor-pointer flex justify-between items-center text-xs">
+                    <span class="text-slate-200 font-medium">${r.title}</span>
+                    <span class="text-[10px] bg-slate-800 text-accent-400 px-1.5 py-0.5 rounded border border-slate-700">${r.type}</span>
+                </div>
+            `).join('') || '<div class="text-xs text-slate-500 p-2">No matching records found</div>';
+
+            container.classList.remove('hidden');
+        }
+
+        function formatCurr(val) {
+            const sym = appState.company.currencySymbol || '$';
+            return sym + (val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function updateSystemCurrency(curr) {
+            appState.company.currency = curr;
+            appState.company.currencySymbol = curr === 'EUR' ? '€' : curr === 'GBP' ? '£' : curr === 'INR' ? '₹' : '$';
+            document.getElementById('currencyBadge').innerText = `${curr} (${appState.company.currencySymbol})`;
+            saveState();
+            renderDashboard();
+        }
+
+        function getAccountTypeBadgeClass(type) {
+            if (type === 'Asset') return 'bg-sky-500/10 text-sky-400 border border-sky-500/20';
+            if (type === 'Liability') return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+            if (type === 'Equity') return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+            if (type === 'Income') return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+            return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openQuickActionModal() { openModal('modal-quick-actions'); }
+
+        // Keyboard Shortcut Ctrl+K
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('globalSearchInput').focus();
+            }
+        });
+
+        // -------------------------------------------------------------
+        // INITIALIZATION
+        // -------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            addJournalLineRow();
+            addJournalLineRow();
+            renderDashboard();
+        });
+    </script>
+</body>
+</html>
