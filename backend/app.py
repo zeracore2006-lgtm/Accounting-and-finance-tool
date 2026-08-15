@@ -11,6 +11,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from database import get_db_connection, init_database
 from config import Config
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class ApexAccountingAPI(BaseHTTPRequestHandler):
 
@@ -37,34 +38,57 @@ class ApexAccountingAPI(BaseHTTPRequestHandler):
         self._set_cors_headers()
         self.end_headers()
 
+    def _serve_static(self, rel_path):
+        target_file = os.path.abspath(os.path.join(BASE_DIR, rel_path))
+        if target_file.startswith(BASE_DIR) and os.path.isfile(target_file):
+            ext = os.path.splitext(target_file)[1].lower()
+            mime_types = {
+                '.html': 'text/html; charset=utf-8',
+                '.css': 'text/css; charset=utf-8',
+                '.js': 'application/javascript; charset=utf-8',
+                '.json': 'application/json',
+                '.png': 'image/png',
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.gif': 'image/gif',
+                '.svg': 'image/svg+xml',
+                '.ico': 'image/x-icon',
+                '.sql': 'text/plain; charset=utf-8',
+            }
+            content_type = mime_types.get(ext, 'application/octet-stream')
+            with open(target_file, 'rb') as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', str(len(content)))
+            self._set_cors_headers()
+            self.end_headers()
+            self.wfile.write(content)
+            return True
+        return False
+
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
         params = parse_qs(parsed.query)
 
+        # 0. Root Web Application UI & Static File Routing
+        if not path.startswith('/api/'):
+            clean_path = path.lstrip('/')
+            if not clean_path or clean_path == 'index.html':
+                clean_path = 'index.html'
+            if self._serve_static(clean_path):
+                return
+            else:
+                self.send_json({'error': f'File {path} not found'}, status=404)
+                return
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
         try:
-            # 0. Root Web Application UI
-            if path == '/' or path == '/index.html':
-                html_path = r'c:\Users\salom\ide.tool\index.html'
-                if os.path.exists(html_path):
-                    with open(html_path, 'rb') as f:
-                        content = f.read()
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'text/html; charset=utf-8')
-                    self.send_header('Content-Length', str(len(content)))
-                    self._set_cors_headers()
-                    self.end_headers()
-                    self.wfile.write(content)
-                    return
-                else:
-                    self.send_json({'error': 'index.html not found'}, status=404)
-                    return
-
             # 1. Health Status
-            elif path == '/api/status':
+            if path == '/api/status':
                 self.send_json({
                     'status': 'online',
                     'service': 'ApexFinance Enterprise API Engine',
