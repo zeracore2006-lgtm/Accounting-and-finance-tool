@@ -1,0 +1,19 @@
+{
+  "name": "zenora-accounting-and-finance",
+  "version": "2.0.0",
+  "description": "ZENORA ACCOUNTING & FINANCE — Work. Simplified.",
+  "main": "server.py",
+  "scripts": {
+    "build": "echo 'No Node build step needed for Python app'",
+    "start": "python server.py"
+  },
+  "keywords": [
+    "zenora",
+    "accounting",
+    "finance",
+    "sme",
+    "erp"
+  ],
+  "author": "Zenora",
+  "license": "MIT"
+}

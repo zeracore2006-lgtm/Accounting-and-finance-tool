@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: apex-finance-suite
+    name: zenora-accounting-finance
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python backend/app.py
+    startCommand: python server.py
     envVars:
       - key: PORT
         value: 10000
       - key: DEBUG
-        value: "True"
+        value: "False"

@@ -1,49 +1,38 @@
-# Render Deployment Guide for ApexFinance & SME Suite
+# Deploying ZENORA ACCOUNTING & FINANCE on Render
 
-This guide explains how to deploy your accounting tool and inventory suite to **Render** so that it works seamlessly and is publicly accessible.
-
----
-
-## What Was Fixed
-1. **Dynamic Path Resolution**: Removed local Windows path `c:\Users\salom\ide.tool\index.html` and replaced it with dynamic relative path resolution (`BASE_DIR`).
-2. **Static File & Tool Serving**: Added support for serving all tools (`index.html`, `zerainventory.html`, `newinventory.html`, `thirdtool.html`) and static assets (`.css`, `.js`, `.png`, `.svg`, `.json`).
-3. **Dynamic `$PORT` Binding**: Configured Python web backend to bind to `0.0.0.0` and listen to Render's dynamic `$PORT`.
-4. **Root Dependency Management**: Created root `requirements.txt`, `Procfile`, and `render.yaml` for Render auto-detection.
+Follow these steps to deploy **ZENORA ACCOUNTING & FINANCE** on Render cleanly without errors:
 
 ---
 
-## Step-by-Step Deployment Instructions
+## 🛠️ Method 1: Using Blueprint (Recommended - Automatic Setup)
 
-### Method A: Blueprint Auto-Deploy (Recommended)
-1. Commit and push all project files to your GitHub / GitLab repository:
-   ```bash
-   git add .
-   git commit -m "Fix Render deployment path, port binding and static routing"
-   git push origin main
-   ```
-2. Log into your [Render Dashboard](https://dashboard.render.com/).
-3. Click **New +** -> **Blueprint**.
-4. Select your repository. Render will automatically read `render.yaml` and configure the Web Service for you.
-5. Click **Apply**.
+1. Go to [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** → **Blueprint**.
+3. Connect your GitHub repository (`zeracore2006-lgtm/Accounting-and-finance-tool`).
+4. Render will automatically detect `render.yaml` and configure Python, dependencies, build command, and start command.
+5. Click **Apply**. Render will build and deploy your live URL!
 
 ---
 
-### Method B: Manual Web Service Setup
-If creating a Manual Web Service on Render:
-- **Name**: `apex-finance-suite`
-- **Environment**: `Python 3`
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `python backend/app.py` (or `python server.py`)
+## ⚙️ Method 2: Manual Web Service Setup
+
+If setting up manually in Render Dashboard:
+
+1. Click **New +** → **Web Service**.
+2. Connect your GitHub repository.
+3. Configure the settings **EXACTLY** as follows:
+   - **Name**: `zenora-accounting-finance`
+   - **Language / Environment**: `Python 3` *(Do NOT select Node)*
+   - **Region**: Choose closest to you
+   - **Branch**: `main`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python server.py`
+4. Under **Advanced** → **Environment Variables**:
+   - `PORT`: `10000`
+5. Click **Create Web Service**.
 
 ---
 
-## Verifying Deployment
-Once Render finishes building:
-1. Open your Render Web Service URL (e.g., `https://apex-finance-suite.onrender.com`).
-2. You will see the **ApexFinance Enterprise Suite** interface immediately.
-3. Access sub-tools directly or via the sidebar menu:
-   - **Main Accounting Dashboard**: `/` or `/index.html`
-   - **Zera Inventory ERP**: `/zerainventory.html`
-   - **Nexus Supply Chain**: `/newinventory.html`
-   - **Financial Accounting Engine**: `/thirdtool.html`
-   - **API Health Endpoint**: `/api/status`
+## 💡 Why `error Couldn't find a package.json` Happened & How It's Fixed:
+Render defaults to a **Node.js** environment if Language isn't explicitly set to **Python 3**. 
+We have now added a `package.json` file to the repository so Render will build smoothly regardless of deployment mode!
