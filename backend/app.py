@@ -8,7 +8,7 @@ import os
 import json
 import traceback
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 from database import get_db_connection, init_database
 from config import Config
 
@@ -70,7 +70,7 @@ class ZenoraAccountingAPI(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
-        path = parsed.path
+        path = unquote(parsed.path)
         params = parse_qs(parsed.query)
 
         # Static File Serving
