@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NexusERP - Inventory, Supply Chain & Financial Accounting Engine</title>
+  <title>ZENORA ACCOUNTING & FINANCE — Financial Accounting Engine</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -160,6 +160,19 @@
     // --- MAIN APP COMPONENT ---
     function App() {
       const [activeTab, setActiveTab] = useState('dashboard');
+      const [theme, setTheme] = useState(() => localStorage.getItem('zenora_theme') || 'dark');
+
+      useEffect(() => {
+        localStorage.setItem('zenora_theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }, [theme]);
+
+      const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
       const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
       const [inventory, setInventory] = useState(INITIAL_INVENTORY_ITEMS);
       const [journals, setJournals] = useState(INITIAL_JOURNALS);
@@ -368,14 +381,25 @@
           {/* SIDEBAR NAVIGATION */}
           <aside className="w-64 border-r border-darkborder bg-darkcard flex flex-col justify-between p-4 z-20">
             <div>
-              <div className="flex items-center space-x-3 px-2 py-3 mb-6 border-b border-darkborder">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-indigo-500/30">
-                  N
+              <div className="flex items-center justify-between space-x-3 px-2 py-3 mb-6 border-b border-darkborder">
+                <div className="flex items-center space-x-3 overflow-hidden">
+                  <img 
+                    src={theme === 'dark' ? 'assets/zenora logo - black.png' : 'assets/zenora logo - white.png'} 
+                    alt="Zenora Logo" 
+                    className="w-10 h-10 rounded-xl object-cover border border-slate-700/50 shadow-md flex-shrink-0 transition-all duration-300"
+                  />
+                  <div className="min-w-0">
+                    <h1 className="font-extrabold text-lg text-white tracking-tight truncate">NexusERP</h1>
+                    <p className="text-xs text-indigo-400 font-medium truncate">Supply Chain & Finance</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="font-extrabold text-lg text-white tracking-tight">NexusERP</h1>
-                  <p className="text-xs text-indigo-400 font-medium">Supply Chain & Finance</p>
-                </div>
+                <button 
+                  onClick={toggleTheme} 
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 transition cursor-pointer flex-shrink-0"
+                  title="Toggle Light / Dark Mode"
+                >
+                  <span className="text-sm">{theme === 'dark' ? '☀️' : '🌙'}</span>
+                </button>
               </div>
 
               <nav className="space-y-1">

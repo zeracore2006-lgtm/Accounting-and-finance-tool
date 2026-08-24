@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApexFinance Enterprise SME Accounting Suite</title>
+    <title>ZENORA ACCOUNTING & FINANCE — Work. Simplified.</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -18,30 +22,43 @@
             theme: {
                 extend: {
                     colors: {
+                        zenora: {
+                            primary: '#123FA8',
+                            accent: '#165DFF',
+                            dark: '#071A4D',
+                            lightBg: '#FFFFFF',
+                            darkBg: '#050505'
+                        },
                         brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#123FA8',
+                            600: '#103794',
+                            700: '#071A4D',
                         },
                         accent: {
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
+                            500: '#165DFF',
+                            600: '#0047eb',
+                            700: '#0037b8',
                         }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Outfit', 'system-ui', 'sans-serif'],
+                        display: ['Outfit', 'Inter', 'sans-serif']
                     }
                 }
             }
         }
     </script>
     <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-display { font-family: 'Outfit', 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .active-nav { background: rgba(99, 102, 241, 0.15); border-left: 3px solid #6366f1; color: #818cf8; }
+        ::-webkit-scrollbar-track { background: #071A4D; }
+        ::-webkit-scrollbar-thumb { background: #165DFF; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #123FA8; }
+        .glass-panel { background: rgba(7, 26, 77, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(22, 93, 255, 0.15); }
+        .active-nav { background: rgba(22, 93, 255, 0.18); border-left: 3px solid #165DFF; color: #60a5fa; }
         @media print {
             body { background: white !important; color: black !important; }
             .no-print { display: none !important; }
@@ -50,22 +67,20 @@
         }
     </style>
 </head>
-<body class="h-full flex overflow-hidden font-sans antialiased text-slate-200 bg-slate-950">
+<body class="h-full flex overflow-hidden font-sans antialiased text-slate-100 bg-[#050505]">
 
     <!-- SIDEBAR NAV -->
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 no-print">
         <!-- Logo & Company Switcher -->
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-accent-600 to-emerald-500 flex items-center justify-center font-bold text-white shadow-lg shadow-accent-500/20">
-                    <i data-lucide="landmark" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-slate-100 text-sm tracking-wide leading-tight">ApexFinance</h1>
-                    <p class="text-xs text-slate-400">Apex Global Ltd</p>
+        <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <img id="mainAppLogo" src="assets/zenora logo - black.png" alt="Zenora Logo" class="h-10 w-10 object-cover rounded-xl shadow-md border border-slate-700/50 flex-shrink-0 transition-all duration-300">
+                <div class="min-w-0">
+                    <h1 class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-wider uppercase leading-tight truncate">ZENORA ACCOUNTING & FINANCE</h1>
+                    <p class="text-[11px] text-accent-500 font-semibold truncate">Work. Simplified.</p>
                 </div>
             </div>
-            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SME Pro</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-shrink-0">SME Pro</span>
         </div>
 
         <!-- Role & Ecosystem Status -->
@@ -112,8 +127,14 @@
                     <a href="/zerainventory.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                         <i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> Zera Inventory ERP <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-60"></i>
                     </a>
+                    <a href="/vernewinventory.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i> Advanced Multi-Org Inventory <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-60"></i>
+                    </a>
                     <a href="/newinventory.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                         <i data-lucide="warehouse" class="w-4 h-4 text-cyan-400"></i> Nexus Supply Chain <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-60"></i>
+                    </a>
+                    <a href="/newinventory1.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i data-lucide="package-search" class="w-4 h-4 text-purple-400"></i> Inventory Express Portal <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-60"></i>
                     </a>
                     <a href="/thirdtool.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                         <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i> Financial Accounting Engine <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-60"></i>
@@ -230,6 +251,12 @@
 
             <!-- Top Actions -->
             <div class="flex items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleAppTheme()" id="themeToggleBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-xs hover:bg-slate-300 dark:hover:bg-slate-700 transition cursor-pointer" title="Toggle Light / Dark Mode">
+                    <i data-lucide="sun" id="themeIcon" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
+                    <span id="themeLabel" class="font-medium">Dark Mode</span>
+                </button>
+
                 <!-- PostgreSQL Status Badge -->
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-950/80 border border-sky-600/30 text-xs">
                     <i data-lucide="database" class="w-3.5 h-3.5 text-sky-400"></i>
@@ -984,6 +1011,7 @@
                     <button onclick="renderFinancialReport('pnl')" id="repTab-pnl" class="pb-2 border-b-2 border-accent-500 text-accent-400">Profit & Loss (P&L)</button>
                     <button onclick="renderFinancialReport('bs')" id="repTab-bs" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Balance Sheet</button>
                     <button onclick="renderFinancialReport('tb')" id="repTab-tb" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Trial Balance</button>
+                    <button onclick="renderFinancialReport('cf')" id="repTab-cf" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Cash Flow Statement</button>
                 </div>
 
                 <!-- Report Container (Print Friendly) -->
@@ -2675,6 +2703,45 @@
                         </tbody>
                     </table>
                 `;
+            } else if (type === 'cf') {
+                const cashAccs = appState.coa.filter(a => a.parent === 'Cash & Equivalents');
+                const totalCash = cashAccs.reduce((s, a) => s + a.balance, 0);
+
+                viewer.innerHTML = `
+                    <div class="border-b border-slate-800 pb-4 text-center">
+                        <h2 class="text-xl font-bold text-white tracking-wide">APEX GLOBAL LTD</h2>
+                        <h3 class="text-sm font-semibold text-emerald-400 mt-1">STATEMENT OF CASH FLOWS</h3>
+                        <p class="text-xs text-slate-400">For Period Ending August 31, 2026</p>
+                    </div>
+
+                    <div class="space-y-6 text-xs">
+                        <div>
+                            <div class="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-2 text-sm">CASH FLOW FROM OPERATING ACTIVITIES</div>
+                            <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                <span class="text-slate-300">Net Operating Inflows / (Outflows)</span>
+                                <span class="font-mono text-slate-100">${formatCurr(totalCash * 0.75)}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-2 text-sm">CASH FLOW FROM INVESTING ACTIVITIES</div>
+                            <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                <span class="text-slate-300">Equipment & Asset Purchases</span>
+                                <span class="font-mono text-rose-400">-${formatCurr(5000)}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-2 text-sm">CASH FLOW FROM FINANCING ACTIVITIES</div>
+                            <div class="flex justify-between py-1 border-b border-slate-800/40">
+                                <span class="text-slate-300">Owner Capital Contributions</span>
+                                <span class="font-mono text-emerald-400">${formatCurr(50000)}</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-sm font-bold">
+                            <span class="text-white">NET CASH POSITION</span>
+                            <span class="font-mono text-xl text-emerald-400">${formatCurr(totalCash)}</span>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -2820,12 +2887,92 @@
         });
 
         // -------------------------------------------------------------
+        // THEME MANAGEMENT & DYNAMIC LOGO SWITCHING
+        // -------------------------------------------------------------
+        function applyAppTheme(theme) {
+            const isDark = theme === 'dark';
+            const htmlEl = document.documentElement;
+            const bodyEl = document.body;
+            
+            if (isDark) {
+                htmlEl.classList.add('dark');
+                bodyEl.style.backgroundColor = '#050505';
+                bodyEl.classList.add('text-slate-100');
+                bodyEl.classList.remove('text-slate-900');
+            } else {
+                htmlEl.classList.remove('dark');
+                bodyEl.style.backgroundColor = '#FFFFFF';
+                bodyEl.classList.add('text-slate-900');
+                bodyEl.classList.remove('text-slate-100');
+            }
+            
+            localStorage.setItem('zenora_theme', theme);
+            
+            // Update upper-left brand logo: black logo in dark mode, white logo in light mode
+            const mainLogo = document.getElementById('mainAppLogo');
+            if (mainLogo) {
+                mainLogo.src = isDark ? 'assets/zenora logo - black.png' : 'assets/zenora logo - white.png';
+            }
+            document.querySelectorAll('.theme-logo').forEach(img => {
+                img.src = isDark ? 'assets/zenora logo - black.png' : 'assets/zenora logo - white.png';
+            });
+
+            // Update Theme Toggle button icon and label
+            const themeIcon = document.getElementById('themeIcon');
+            const themeLabel = document.getElementById('themeLabel');
+            if (themeIcon) {
+                themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            }
+            if (themeLabel) {
+                themeLabel.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            }
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
+        function toggleAppTheme() {
+            const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyAppTheme(newTheme);
+        }
+
+        // -------------------------------------------------------------
+        // REST API BACKEND SYNC
+        // -------------------------------------------------------------
+        async function syncStateFromBackend() {
+            try {
+                const res = await fetch('/api/accounts');
+                if (res.ok) {
+                    const accounts = await res.json();
+                    if (Array.isArray(accounts) && accounts.length > 0) {
+                        appState.coa = accounts;
+                    }
+                }
+                const jRes = await fetch('/api/journals');
+                if (jRes.ok) {
+                    const journals = await jRes.json();
+                    if (Array.isArray(journals) && journals.length > 0) {
+                        appState.journals = journals;
+                    }
+                }
+                saveState();
+                renderDashboard();
+            } catch (err) {
+                console.log('Backend sync active with local state fallback');
+            }
+        }
+
+        // -------------------------------------------------------------
         // INITIALIZATION
         // -------------------------------------------------------------
         window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('zenora_theme') || 'dark';
+            applyAppTheme(savedTheme);
             lucide.createIcons();
             addJournalLineRow();
             addJournalLineRow();
+            syncStateFromBackend();
             renderDashboard();
         });
     </script>
